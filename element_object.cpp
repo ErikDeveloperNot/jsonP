@@ -11,13 +11,8 @@ element_object::element_object() : element{object}
 
 element_object::~element_object()
 {
-	std::cout << "element_object destructor" << std::endl;
-		
 	for (auto it = elements.begin(); it != elements.end(); it++) {
-//int cnt = it->second->get_count();
-//std::cout << it->second->get_type() << " -- count: " << cnt << std::endl;
 		if (it->second->get_count() < 1) {
-//std::cout << "calling delete for " << it->second->get_type() << std::endl;	
 			delete it->second;
 		}
 	}
@@ -55,10 +50,28 @@ std::vector<element*>& element_object::get_as_array(std::string key)
 }
 
 
-long element_object::get_as_numeric(std::string key) 
+int element_object::get_as_numeric_int(std::string key) 
+{
+	if (elements.count(key) > 0)
+		return elements[key]->get_int_value();
+	else
+		throw jsonP_exception{"Key not found"};
+}
+
+
+long element_object::get_as_numeric_long(std::string key) 
 {
 	if (elements.count(key) > 0)
 		return elements[key]->get_long_value();
+	else
+		throw jsonP_exception{"Key not found"};
+}
+
+
+double element_object::get_as_numeric_double(std::string key) 
+{
+	if (elements.count(key) > 0)
+		return elements[key]->get_double_value();
 	else
 		throw jsonP_exception{"Key not found"};
 }

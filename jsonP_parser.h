@@ -20,7 +20,10 @@ private:
 	void parse_object(element_object *&);
 	void parse_key(std::string &);
 	void parse_bool(bool &);
+	void parse_numeric_int(int &);
 	void parse_numeric(long &);
+	void parse_numeric_double(double &);
+	element_type parse_numeric(int & start, int & end);
 	
 public:
 	jsonP_parser() = default;

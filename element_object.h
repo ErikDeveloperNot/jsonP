@@ -20,7 +20,9 @@ public:
 	
 	std::string & get_as_string(std::string key) override;
 	bool get_as_boolean(std::string key) override;
-	long get_as_numeric(std::string key) override;
+	int get_as_numeric_int(std::string key) override;
+	long get_as_numeric_long(std::string key) override;
+	double get_as_numeric_double(std::string key) override;
 	std::vector<element *> & get_as_array(std::string key) override;
 	element_object * get_as_object(std::string key) override;
 	

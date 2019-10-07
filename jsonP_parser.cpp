@@ -21,7 +21,7 @@ jsonP_doc * jsonP_parser::parse(std::string & json_)
 	
 	if (json.length() < 2)
 		throw jsonP_exception{"Error parsing into a json doc"};
-		
+
 	eat_whitespace(index);
 	parse_object(doc);
 	
@@ -38,20 +38,50 @@ void jsonP_parser::eat_whitespace(int idx)
 
 void jsonP_parser::parse_key(std::string & key)
 {
-	//ignore escapes for now
-	size_t start = ++index;
+	index++;
 	
-	while (json[index] != '"')
-		index++;
-		
-//	if ((index - start) < 1) {
-//		std::string err = "parse Warning.... blank key found at index: " + std::to_string(index);
-//		throw jsonP_exception{err.c_str()};
-//	}
+	while (true) {
+		if (json[index] == '\\') {
+			switch (json[index+1])
+			{
+				case '\\' :
+				case '"' :
+				case '/':
+				{
+					key += json[++index];
+					index++;
+					break;
+				}
+				case 'b' :
+				case 'f' :
+				case 'r' :
+				case 'n' :
+				case 't' :
+				case 'u' :			//treat the same as control chars for now
+				{
+//					index++;
+					key += json[index++];
+					break;
+				}
+				default :
+				{
+					std::string err = "parse Error, invalid escape found at index: " + std::to_string(index);
+					throw jsonP_exception{err.c_str()};
+				}
+			}
+		}	else if (json[index] == '"') {
+			break;
+		} else {
+			key += json[index++];
+		}
+	}
 	
-	key = json.substr(start, index-start);
+//	key = json.substr(start, index-start);
 	index++;
 //std::cout << "parse_key returning: " << key << std::endl;
+//for (char &c : key)
+//	std::cout << c << ":" << int(c) << ",";
+//std::cout << std::endl;
 }
 
 
@@ -114,6 +144,41 @@ void jsonP_parser::parse_numeric(long & value)
 }
 
 
+element_type jsonP_parser::parse_numeric(int & start, int & end)
+{
+	start = index;
+//	bool negative{false};
+//	element_type t{numeric_long};
+//	bool is_int{true};
+	bool is_long{true};
+	bool is_double{false};
+	
+	char c;
+	
+	while (true) {
+		c = json[++index];
+		
+		if (c == 'e' || c == 'E' || c == '.' || c == '-' || c == '+') {
+			is_double = true;
+			is_long = false;
+		} else if ((int)json[index] >= 48 && (int)json[index] <= 57) {
+			continue;
+		} else {
+			break;
+		}
+	}
+
+	end = index - 1;
+	
+//	if (is_int) 
+//		return numeric_int;
+	if (is_long)
+		return numeric_long;
+	else
+		return numeric_double;
+}
+
+
 void jsonP_parser::parse_value(element *& value)
 {
 	//figure out what type of data type this is
@@ -139,9 +204,29 @@ void jsonP_parser::parse_value(element *& value)
 		value = new element_boolean{bool_val};
 	} else if (((int)json[index] >= 48 && (int)json[index] <= 57) || json[index] == '-') {
 		//number - no floating or scientific for now
-		long long_val;
-		parse_numeric(long_val);
-		value = new element_numeric{long_val};
+//		long long_val;
+//		parse_numeric(long_val);
+//		value = new element_numeric{long_val};
+
+		int start{index};
+		int end;
+		
+		switch (parse_numeric(start, end)) 
+		{
+			case numeric_int :
+//std::cout << "parse numeric returned int\n";
+				value = new element_numeric{atoi(json.substr(start, end).c_str())};
+				break;
+			case numeric_long :
+//std::cout << "parse numeric returned long\n";
+				value = new element_numeric{atol(json.substr(start, end).c_str())};
+				break;
+			case numeric_double :
+//std::cout << "parse numeric returned double\n";
+				value = new element_numeric{atof(json.substr(start, end).c_str())};
+				break;
+		}
+		
 	} else {
 		std::string err = "parse error, trying to get value at index: " + std::to_string(index);
 		throw jsonP_exception{err.c_str()};
@@ -172,8 +257,17 @@ void jsonP_parser::parse_array(element_array *& arr)
 		case boolean :
 			arr = new element_array{boolean};
 			break;	
-		case numeric :
-			arr = new element_array{numeric};
+//		case numeric :
+//			arr = new element_array{numeric};
+//			break;
+		case numeric_int :
+			arr = new element_array{numeric_int};
+			break;
+		case numeric_long :
+			arr = new element_array{numeric_long};
+			break;
+		case numeric_double :
+			arr = new element_array{numeric_double};
 			break;
 		case object :
 			arr = new element_array{object};
