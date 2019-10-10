@@ -14,7 +14,7 @@ const static std::string quote_colon{"\":"};
 const static std::string comma{","};
 
 //enum element_type {object=1, string=2, numeric=3, array=4, boolean=5};
-enum element_type {object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, array=6, boolean=7};
+enum element_type {object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, array=6, boolean=7, null=8};
 
 class element_object;
 
@@ -47,6 +47,9 @@ private:
 			break;
 			case object:
 			return "This entity is an object";
+			break;
+			case null:
+			return "This entity contains a null value";
 			break;
 		}
 		

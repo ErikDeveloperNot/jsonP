@@ -126,6 +126,21 @@ public:
 
 
 /*
+ * JSON null element
+ */
+class element_null : public element
+{
+public:
+	element_null() : element{null} {}
+	~element_null() = default;
+	
+	void stringify(std::string &s) override {
+		s += "null";
+	}
+};
+
+
+/*
  * JSON array element
  */
 class element_array : public element
@@ -164,7 +179,19 @@ public:
 			e->incr_count();
 			return true;
 		} else {
-			return false;
+			/*
+			 * in the case the array is initialized as holding types of null (not sure if this is allowed)
+			 * and a different type is passed in, then change the array type to that
+			 */
+			if (elements_types == null) {
+				elements_types = e->get_type();
+				elements.clear();
+				elements.push_back(e); 
+				e->incr_count();
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	

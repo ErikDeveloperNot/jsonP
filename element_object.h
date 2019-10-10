@@ -30,7 +30,53 @@ public:
 	void stringify_pretty(std::string &);
 };
 
-typedef element_object jsonP_doc;
+//typedef element_object jsonP_doc;
+
+class jsonP_doc
+{
+private:
+	element_type type;
+	element_object *obj = nullptr;
+	element_array *arr = nullptr;
+	
+public:
+	jsonP_doc() : type{object} {}								//defaut to type of object
+	jsonP_doc(element_object * o) : type{object}, obj{o} {}
+	jsonP_doc(element_array * a) : type{array}, arr{a} {}
+	~jsonP_doc() = default;
+	
+	void set_object(element_object * o) 
+	{ 
+		obj = o; 
+		type = object;
+	}
+	
+	void set_array(element_array * a) 
+	{ 
+		arr = a; 
+		type = array;
+	}
+	
+	element_object * get_object() 
+	{
+		if (type == object) {
+			return obj;
+		} else {
+			throw jsonP_exception{"This json document is of type array"};
+		}
+	}
+	
+	element_array * get_array() 
+	{
+		if (type == array) {
+			return arr;
+		} else {
+			throw jsonP_exception{"This json document is of type object"};
+		}
+	}
+	
+	element_type get_type() { return type; }
+};
 
 
 #endif // _ELEMENT_OBJECT_H_

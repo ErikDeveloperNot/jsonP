@@ -23,7 +23,20 @@ jsonP_doc * jsonP_parser::parse(std::string & json_)
 		throw jsonP_exception{"Error parsing into a json doc"};
 
 	eat_whitespace(index);
-	parse_object(doc);
+	
+	if (json[index] == '{') {
+		element_object *obj;
+		parse_object(obj);
+		doc = new jsonP_doc{obj};
+	} else if (json[index] == '[') {
+		element_array *arr;
+		parse_array(arr);
+		doc = new jsonP_doc{arr};
+	} else {
+		throw jsonP_exception{"Error parsing json text, does not appear to be an object or an array"};
+	}
+	
+//	parse_object(doc);
 	
 	return doc;
 }
@@ -85,6 +98,7 @@ void jsonP_parser::parse_key(std::string & key)
 }
 
 
+// should only allow lowercase but accept either
 void jsonP_parser::parse_bool(bool& value)
 {
 	if (json[index] == 't' || json[index] == 'T') {
@@ -151,23 +165,59 @@ element_type jsonP_parser::parse_numeric(int & start, int & end)
 //	element_type t{numeric_long};
 //	bool is_int{true};
 	bool is_long{true};
-	bool is_double{false};
+//	bool is_double{false};
 	
-	char c;
+//	char c;
 	
-	while (true) {
-		c = json[++index];
-		
-		if (c == 'e' || c == 'E' || c == '.' || c == '-' || c == '+') {
-			is_double = true;
-			is_long = false;
-		} else if ((int)json[index] >= 48 && (int)json[index] <= 57) {
-			continue;
-		} else {
-			break;
-		}
-	}
+//	while (true) {
+//		c = json[++index];
+//		
+//		if (c == 'e' || c == 'E' || c == '.' || c == '-' || c == '+') {
+//			is_double = true;
+//			is_long = false;
+//		} else if ((int)json[index] >= 48 && (int)json[index] <= 57) {
+//			continue;
+//		} else {
+//			break;
+//		}
+//	}
+//
+//	end = index - 1;
+	
+	char c = json[index];
+	
+	bool sign {true};
+	bool zer0{false};
+	bool exp{false};
+	bool exp_sign{false};
+	bool dec{true};
 
+	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
+//std::cerr << "c: " << c << std::endl;
+		if (c >= '1' && c <= '9') {
+			zer0 = true;
+			exp_sign = false;
+		} else if (c == '0' && zer0) {
+			exp_sign = false;
+		} else if ((c == 'e' || c == 'E') && zer0 && !exp) {
+			exp = true;
+			exp_sign = true;
+			dec = false;
+			is_long = false;
+		} else if (c == '.' && dec) {
+			exp = false;
+			is_long = false;
+		} else if ((c == '-' || c == '+') && (sign || exp_sign)) {
+			exp_sign = false;
+		} else {
+			std::string err = "parse error, trying to numeric value at index: " + std::to_string(index);
+			throw jsonP_exception{err.c_str()};
+		}
+		
+		sign = false;
+		c = json[++index];
+	}
+	
 	end = index - 1;
 	
 //	if (is_int) 
@@ -202,7 +252,7 @@ void jsonP_parser::parse_value(element *& value)
 		bool bool_val;
 		parse_bool(bool_val);
 		value = new element_boolean{bool_val};
-	} else if (((int)json[index] >= 48 && (int)json[index] <= 57) || json[index] == '-') {
+	} else if (((int)json[index] >= 49 && (int)json[index] <= 57) || json[index] == '-' || json[index] == '+') {
 		//number - no floating or scientific for now
 //		long long_val;
 //		parse_numeric(long_val);
@@ -225,8 +275,18 @@ void jsonP_parser::parse_value(element *& value)
 //std::cout << "parse numeric returned double\n";
 				value = new element_numeric{atof(json.substr(start, end).c_str())};
 				break;
+			default :
+				std::string err = "parse error, invalid return type from parse_numeric at index: " + std::to_string(index);
+				throw jsonP_exception{err.c_str()};
 		}
-		
+	} else if (json[index] == 'n') { 
+		if (json[++index] == 'u' && json[++index] == 'l' && json[++index] == 'l') {
+			value = new element_null{};
+			index++;
+		} else {
+			std::string err = "parse error, trying to get null value at index: " + std::to_string(index);
+			throw jsonP_exception{err.c_str()};
+		}
 	} else {
 		std::string err = "parse error, trying to get value at index: " + std::to_string(index);
 		throw jsonP_exception{err.c_str()};
@@ -237,6 +297,7 @@ void jsonP_parser::parse_value(element *& value)
 void jsonP_parser::parse_array(element_array *& arr)
 {
 	//figure out array type based off of first element
+//if (advance_cursor)
 	eat_whitespace(++index);
 	
 	//make sure array is empty
@@ -274,6 +335,8 @@ void jsonP_parser::parse_array(element_array *& arr)
 			break;
 		case array :
 			arr = new element_array{array};
+		case null :
+			arr = new element_array{null};
 	}
 	
 	arr->add_element(val);
