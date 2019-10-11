@@ -86,6 +86,67 @@ public:
 	int get_count() { return --ref_count; }
 	
 	virtual void stringify(std::string &) {};
+	
+	virtual void stringify_pretty(std::string & raw, std::string & pretty)
+	{
+//		std::string raw;
+//		stringify(raw);
+		size_t l = raw.length() * 3;
+		char buf[l];
+		int index{0};
+		bool indent{false};
+		size_t indent_l{0};
+		
+		for (size_t i{0}; i<raw.length(); i++) {
+			if (index == l) {
+				//need to reallocate buf
+			}
+			
+			if (raw[i] == '{' || raw[i] == '[') {
+				indent = true;
+				indent_l += 2;
+				buf[index++] = raw[i];
+				buf[index++] = '\n';
+				
+				for (size_t t{0}; t<indent_l; t++)
+					buf[index++] = ' ';
+				
+			} else if (raw[i] == ']' || raw[i] == '}') {
+				indent_l -= 2;
+				indent = (indent_l > 0) ? true : false;
+				buf[index++] = '\n';
+				
+				if (indent)
+					for (size_t t{0}; t<indent_l; t++)
+						buf[index++] = ' ';
+						
+				buf[index++] = raw[i];
+			} else if (raw[i] == ',') {
+				buf[index++] = raw[i];
+				buf[index++] = '\n';
+				
+				if (indent)
+					for (size_t t{0}; t<indent_l; t++)
+						buf[index++] = ' ';
+						
+			} else if (raw[i] == ':') {
+				buf[index++] = raw[i];
+				buf[index++] = ' ';
+			} else {
+				buf[index++] = raw[i];
+			}
+		}
+		
+		buf[index] = '\0';
+		pretty = buf;
+	}
+	
+	
+	virtual void stringify_pretty(std::string &s) {
+		std::string raw;
+		stringify(raw);
+		stringify_pretty(raw, s);
+	}
 };
 
 

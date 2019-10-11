@@ -27,7 +27,7 @@ public:
 	element_object * get_as_object(std::string key) override;
 	
 	void stringify(std::string &) override;
-	void stringify_pretty(std::string &);
+//	void stringify_pretty(std::string &);
 };
 
 //typedef element_object jsonP_doc;
