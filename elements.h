@@ -1,10 +1,13 @@
 #include "element.h"
 
 //#include <iostream>
+//#include <chrono>
 
 #ifndef _ELEMENTS_H_
 #define _ELEMENTS_H_
 
+typedef std::chrono::high_resolution_clock clock2;
+typedef std::chrono::duration<float, std::milli> mil;
 
 /*
  * JSON string element
@@ -164,19 +167,26 @@ public:
 	~element_array() {
 //		std::cout << "element_array destructor" << std::endl;
 		for (element *e : elements) {
-//int cnt = e->get_count();
-//std::cout << e->get_type() << " -- count: " << cnt << std::endl;
 			if (e->get_count() < 1) {
-//std::cout << "calling delete for " << e->get_type() << std::endl;
 				delete e;
 			}
 		}
 	}
 	
 	bool add_element(element *e) { 
+//		static long total{0};
+//		auto t0 = clock2::now();
+//		long l0 = clock2::now().time_since_epoch().count();
+
 		if (e->get_type() == elements_types) {
 			elements.push_back(e); 
 			e->incr_count();
+
+//			auto t1 = clock2::now();
+//			long l1 = clock2::now().time_since_epoch().count();
+//			total += l1-l0;
+//			std::cout << "add element elapse: " << mil(t1-t0).count() << "ms, " << l1 << ", " << (l1-l0) << ", total: " << total << "\n";
+
 			return true;
 		} else {
 			/*

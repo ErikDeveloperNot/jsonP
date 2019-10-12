@@ -23,7 +23,13 @@ private:
 	void parse_numeric_int(int &);
 	void parse_numeric(long &);
 	void parse_numeric_double(double &);
-	element_type parse_numeric(int & start, int & end);
+	element_type parse_numeric(int & start, int & end);	//dont use
+	element_type parse_numeric(std::string &);
+	
+//	long numeric_total{0};
+//	long bool_total{0};
+//	long key_total{0};
+
 	
 public:
 	jsonP_parser() = default;

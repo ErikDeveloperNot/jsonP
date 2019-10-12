@@ -1,6 +1,6 @@
 #include "jsonP_parser.h"
 
-
+//#include <chrono>
 
 jsonP_parser::jsonP_parser(std::string json_) : json{json_}
 {
@@ -36,7 +36,9 @@ jsonP_doc * jsonP_parser::parse(std::string & json_)
 		throw jsonP_exception{"Error parsing json text, does not appear to be an object or an array"};
 	}
 	
-//	parse_object(doc);
+//	std::cout << "numeric total: " << numeric_total << "\n";
+//	std::cout << "bool total: " << bool_total << "\n";
+//	std::cout << "key total: " << key_total << "\n";
 	
 	return doc;
 }
@@ -52,7 +54,8 @@ void jsonP_parser::eat_whitespace(int idx)
 void jsonP_parser::parse_key(std::string & key)
 {
 	index++;
-	
+//	long l0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();	
+
 	while (true) {
 		if (json[index] == '\\') {
 			switch (json[index+1])
@@ -88,13 +91,12 @@ void jsonP_parser::parse_key(std::string & key)
 			key += json[index++];
 		}
 	}
-	
-//	key = json.substr(start, index-start);
+
+//	long l1 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//	key_total += (l1-l0);
+
 	index++;
-//std::cout << "parse_key returning: " << key << std::endl;
-//for (char &c : key)
-//	std::cout << c << ":" << int(c) << ",";
-//std::cout << std::endl;
+//	std::cout << "parse_key returning: " << key << ", next index: " << index << ", val: " << json[index] << std::endl;
 }
 
 
@@ -136,6 +138,7 @@ void jsonP_parser::parse_bool(bool& value)
 void jsonP_parser::parse_numeric(long & value)
 {
 	bool negative{false};
+//	long l0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
 	if (json[index] == '-') {
 		negative = true;
@@ -155,51 +158,36 @@ void jsonP_parser::parse_numeric(long & value)
 	} else {
 		throw jsonP_exception{"parse error, numeric value of 0 length"};
 	}
+
+//	long l1 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//	numeric_total += (l1-l0);
 }
 
 
+/*
+ * uses string::substr() - method should not be used
+ */
 element_type jsonP_parser::parse_numeric(int & start, int & end)
 {
 	start = index;
-//	bool negative{false};
-//	element_type t{numeric_long};
-//	bool is_int{true};
 	bool is_long{true};
-//	bool is_double{false};
-	
-//	char c;
-	
-//	while (true) {
-//		c = json[++index];
-//		
-//		if (c == 'e' || c == 'E' || c == '.' || c == '-' || c == '+') {
-//			is_double = true;
-//			is_long = false;
-//		} else if ((int)json[index] >= 48 && (int)json[index] <= 57) {
-//			continue;
-//		} else {
-//			break;
-//		}
-//	}
-//
-//	end = index - 1;
-	
 	char c = json[index];
 	
 	bool sign {true};
-	bool zer0{false};
 	bool exp{false};
 	bool exp_sign{false};
 	bool dec{true};
 
+//	long l0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();	
+
 	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
-//std::cerr << "c: " << c << std::endl;
-		if (c >= '1' && c <= '9') {
-			zer0 = true;
+//		if (c >= '1' && c <= '9') {
+		if (c >= '0' && c <= '9') {
+//			zer0 = true;
 			exp_sign = false;
-		} else if (c == '0' && zer0) {
-			exp_sign = false;
-		} else if ((c == 'e' || c == 'E') && zer0 && !exp) {
+		/*} else if (c == '0' && zer0) {
+			exp_sign = false;*/
+		} else if ((c == 'e' || c == 'E') /*&& zer0*/ && !exp) {
 			exp = true;
 			exp_sign = true;
 			dec = false;
@@ -219,13 +207,60 @@ element_type jsonP_parser::parse_numeric(int & start, int & end)
 	}
 	
 	end = index - 1;
-	
+
+//	long l1 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//	numeric_total += (l1-l0);	
+
 //	if (is_int) 
 //		return numeric_int;
 	if (is_long)
 		return numeric_long;
 	else
 		return numeric_double;
+}
+
+
+element_type jsonP_parser::parse_numeric(std::string & number)
+{
+	bool is_long{true};
+	char c = json[index];
+	bool sign {true};
+	bool exp{false};
+	bool exp_sign{false};
+	bool dec{true};
+
+	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
+		number += c;
+	
+		if (c >= '0' && c <= '9') {
+//			zer0 = true;
+			exp_sign = false;
+		/*} else if (c == '0' && zer0) {
+			exp_sign = false;*/
+		} else if ((c == 'e' || c == 'E') /*&& zer0*/ && !exp) {
+			exp = true;
+			exp_sign = true;
+			dec = false;
+			is_long = false;
+		} else if (c == '.' && dec) {
+			exp = false;
+			is_long = false;
+		} else if ((c == '-' || c == '+') && (sign || exp_sign)) {
+			exp_sign = false;
+		} else {
+			std::string err = "parse error, trying to numeric value at index: " + std::to_string(index);
+			throw jsonP_exception{err.c_str()};
+		}
+		
+		sign = false;
+		c = json[++index];
+	}
+	
+	if (is_long)
+		return numeric_long;
+	else
+		return numeric_double;
+
 }
 
 
@@ -252,33 +287,44 @@ void jsonP_parser::parse_value(element *& value)
 		bool bool_val;
 		parse_bool(bool_val);
 		value = new element_boolean{bool_val};
-	} else if (((int)json[index] >= 49 && (int)json[index] <= 57) || json[index] == '-' || json[index] == '+') {
-		//number - no floating or scientific for now
+//	} else if (((int)json[index] >= 49 && (int)json[index] <= 57) || json[index] == '-' || json[index] == '+') {
+	} else if ((json[index] >= '0' && json[index] <= '9') || json[index] == '-' || json[index] == '+') {
 //		long long_val;
 //		parse_numeric(long_val);
 //		value = new element_numeric{long_val};
 
-		int start{index};
-		int end;
+//		long l0 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+//		int start{index};
+//		int end;
+		std::string number;
 		
-		switch (parse_numeric(start, end)) 
+		switch (parse_numeric(number))//start, end)) 
 		{
 			case numeric_int :
 //std::cout << "parse numeric returned int\n";
-				value = new element_numeric{atoi(json.substr(start, end).c_str())};
+//				value = new element_numeric{atoi(json.substr(start, end).c_str())};
+				value = new element_numeric{atoi(number.c_str())};
 				break;
 			case numeric_long :
 //std::cout << "parse numeric returned long\n";
-				value = new element_numeric{atol(json.substr(start, end).c_str())};
+//				value = new element_numeric{atol(json.substr(start, end).c_str())};
+				value = new element_numeric{atol(number.c_str())};
 				break;
 			case numeric_double :
+
 //std::cout << "parse numeric returned double\n";
-				value = new element_numeric{atof(json.substr(start, end).c_str())};
+//				value = new element_numeric{atof(json.substr(start, end).c_str())};
+				value = new element_numeric{atof(number.c_str())};
 				break;
 			default :
 				std::string err = "parse error, invalid return type from parse_numeric at index: " + std::to_string(index);
 				throw jsonP_exception{err.c_str()};
 		}
+
+//		long l1 = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//		numeric_total += (l1-l0);	
+
 	} else if (json[index] == 'n') { 
 		if (json[++index] == 'u' && json[++index] == 'l' && json[++index] == 'l') {
 			value = new element_null{};
@@ -291,6 +337,10 @@ void jsonP_parser::parse_value(element *& value)
 		std::string err = "parse error, trying to get value at index: " + std::to_string(index);
 		throw jsonP_exception{err.c_str()};
 	}
+
+//	std::string s;
+//	value->stringify(s);
+//	std::cout << "parse_value returning: " << value->get_type() << ", stringify: " << s << std::endl;
 }
 
 
@@ -397,7 +447,7 @@ void jsonP_parser::parse_object(element_object *& obj)
 		while (keep_going) {
 			eat_whitespace(index);
 			
-//std::cout << "CHECKING : " << json[index] << std::endl;
+//			std::cout << "CHECKING : " << json[index] << std::endl;
 
 			//check for end object
 			if (json[index] == '}') {
