@@ -6,8 +6,8 @@
 #ifndef _ELEMENTS_H_
 #define _ELEMENTS_H_
 
-typedef std::chrono::high_resolution_clock clock2;
-typedef std::chrono::duration<float, std::milli> mil;
+//typedef std::chrono::high_resolution_clock clock2;
+//typedef std::chrono::duration<float, std::milli> mil;
 
 /*
  * JSON string element
