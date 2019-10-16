@@ -16,14 +16,15 @@ jsonP_doc * jsonP_parser::parse()
 jsonP_doc * jsonP_parser::parse(std::string & json_)
 {
 	json = json_;
+	json_length = json.length();
 	jsonP_doc *doc;
 	index = 0;
 	
 	if (json.length() < 2)
 		throw jsonP_exception{"Error parsing into a json doc"};
-
+std::cout << "1\n";
 	eat_whitespace(index);
-	
+std::cout << "2\n";	
 	if (json[index] == '{') {
 		element_object *obj;
 		parse_object(obj);
@@ -46,7 +47,7 @@ jsonP_doc * jsonP_parser::parse(std::string & json_)
 
 void jsonP_parser::eat_whitespace(int idx)
 {
-	while (json[index] == ' ' || json[index] == '\t' || json[index] == '\n' || json[index] == '\r')
+	while ((json[index] == ' ' || json[index] == '\t' || json[index] == '\n' || json[index] == '\r') && json_length > index) 
 		index++;
 }
 

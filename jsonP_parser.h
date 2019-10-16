@@ -9,22 +9,25 @@
 
 class jsonP_parser
 {
-private:
+protected:
 	std::string json;
+	int json_length;
 	int index;
 	
-	void eat_whitespace(int);
+//	bool buffer_parser;
+	
+	virtual void eat_whitespace(int);
+	virtual void parse_key(std::string &);
+	virtual void parse_bool(bool &);
+	virtual element_type parse_numeric(std::string &);
 	
 	void parse_value(element *&);
 	void parse_array(element_array *&);
 	void parse_object(element_object *&);
-	void parse_key(std::string &);
-	void parse_bool(bool &);
-	void parse_numeric_int(int &);
 	void parse_numeric(long &);
 	void parse_numeric_double(double &);
+	void parse_numeric_int(int &);
 	element_type parse_numeric(int & start, int & end);	//dont use
-	element_type parse_numeric(std::string &);
 	
 //	long numeric_total{0};
 //	long bool_total{0};
@@ -34,6 +37,7 @@ private:
 public:
 	jsonP_parser() = default;
 	jsonP_parser(std::string json);
+	
 	~jsonP_parser() = default;
 
 	jsonP_doc * parse();

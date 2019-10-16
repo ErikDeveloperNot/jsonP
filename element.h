@@ -90,11 +90,31 @@ public:
 	virtual void stringify_pretty(std::string & raw, std::string & pretty)
 	{
 		bool indent{false};
+		bool parsing_value{false};
 		size_t indent_l{0};
 		
 		for (size_t i{0}; i<raw.length(); i++) {
 			
-			if (raw[i] == '{' || raw[i] == '[') {
+			if (raw[i] == '"') {
+				
+				if (parsing_value) {
+					int j{1}, k{2};
+					
+					while (raw[i-j] == '\\') {
+						j++;
+						k++;
+					}
+						
+					if (k%2 == 0)
+						parsing_value = false;
+					else
+						parsing_value = true;
+				} else {
+					parsing_value = true;
+				}
+				
+				pretty += raw[i];
+			} else if (!parsing_value && (raw[i] == '{' || raw[i] == '[')) {
 				indent = true;
 				indent_l += 2;
 				pretty += raw[i];
@@ -103,7 +123,7 @@ public:
 				for (size_t t{0}; t<indent_l; t++)
 					pretty += ' ';
 				
-			} else if (raw[i] == ']' || raw[i] == '}') {
+			} else if (!parsing_value && (raw[i] == ']' || raw[i] == '}')) {
 				indent_l -= 2;
 				indent = (indent_l > 0) ? true : false;
 				pretty += '\n';
@@ -113,7 +133,7 @@ public:
 						pretty += ' ';
 						
 				pretty += raw[i];
-			} else if (raw[i] == ',') {
+			} else if (!parsing_value && (raw[i] == ',')) {
 				pretty += raw[i];
 				pretty += '\n';
 				
@@ -121,7 +141,7 @@ public:
 					for (size_t t{0}; t<indent_l; t++)
 						pretty += ' ';
 						
-			} else if (raw[i] == ':') {
+			} else if (!parsing_value && (raw[i] == ':')) {
 				pretty += raw[i];
 				pretty += ' ';
 			} else {
