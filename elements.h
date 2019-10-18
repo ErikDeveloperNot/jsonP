@@ -150,17 +150,17 @@ class element_array : public element
 {
 private:
 	std::vector<element *> elements;
-	element_type elements_types;
+//	element_type elements_types;
 	
 public:
-	element_array(element_type t) : element{array}, elements_types{t} {}
+	element_array(element_type t) : element{array} {} //, elements_types{t} {}
 	
-	element_array(std::vector<element *> v, element_type t) : element{array}, elements_types{t} {
+	element_array(std::vector<element *> v, element_type t) : element{array} {  //, elements_types{t} {
 		for (element *e : v) {
-			if (e->get_type() == elements_types) {
+//			if (e->get_type() == elements_types) {
 				e->incr_count();
 				elements.push_back(e);
-			}
+//			}
 		}
 	}
 	
@@ -174,35 +174,28 @@ public:
 	}
 	
 	bool add_element(element *e) { 
-//		static long total{0};
-//		auto t0 = clock2::now();
-//		long l0 = clock2::now().time_since_epoch().count();
-
-		if (e->get_type() == elements_types) {
+		/*
+		 * in the case the array is initialized as holding types of null (not sure if this is allowed)
+		 * and a different type is passed in, then change the array type to that
+		 * 
+		 * update 10/19/2019 - i guess hetrogenous arrays are allowed, so add anytype
+		 */
+//		if (e->get_type() == elements_types) {
 			elements.push_back(e); 
 			e->incr_count();
-
-//			auto t1 = clock2::now();
-//			long l1 = clock2::now().time_since_epoch().count();
-//			total += l1-l0;
-//			std::cout << "add element elapse: " << mil(t1-t0).count() << "ms, " << l1 << ", " << (l1-l0) << ", total: " << total << "\n";
-
 			return true;
-		} else {
-			/*
-			 * in the case the array is initialized as holding types of null (not sure if this is allowed)
-			 * and a different type is passed in, then change the array type to that
-			 */
-			if (elements_types == null) {
-				elements_types = e->get_type();
-				elements.clear();
-				elements.push_back(e); 
-				e->incr_count();
-				return true;
-			} else {
-				return false;
-			}
-		}
+//		} else {
+//			
+//			if (elements_types == null) {
+//				elements_types = e->get_type();
+//				elements.clear();
+//				elements.push_back(e); 
+//				e->incr_count();
+//				return true;
+//			} else {
+//				return false;
+//			}
+//		}
 	}
 	
 	std::vector<element *> & get_array_value() override { return elements; }

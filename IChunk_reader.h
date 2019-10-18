@@ -1,6 +1,11 @@
 #ifndef ICHUNK_READER_H
 #define ICHUNK_READER_H
 
+/*
+ * a json_buffer_parser created with an instance that implements this interface will become the owner
+ * of that object and call delete on it when the parser is deleted or goes out of scope
+ */
+
 class IChunk_reader
 {
 public:
