@@ -31,7 +31,8 @@ jsonP_buffer_parser::~jsonP_buffer_parser()
 {
 //	std::cout << "jsonP_buffer_parser destructor\n";
 	free(buffer);
-	delete ((file_chunk_impl*)reader);
+//	delete ((file_chunk_impl*)reader);
+	delete reader;
 }
 
 
@@ -57,7 +58,7 @@ int jsonP_buffer_parser::read_next_chunk()
 	json += buffer;
 	index = 0;
 	json_length = json.length();
-//std::cout << "read: " << read << std::endl;// << ", json:\n" << json << std::endl;
+//std::cout << "read: " << read << ", json:\n" << json << std::endl;
 
 	if (read == 0) {
 		more_chunks = false;
@@ -140,6 +141,8 @@ element_type jsonP_buffer_parser::parse_numeric(std::string & value)
 	try {
 		t = jsonP_parser::parse_numeric(value);
 	} catch (jsonP_exception &ex) {
+//std::cerr << "jsonP_buffer_parser error caught paring numeric, index: " << index << ", json_length: " << json_length << std::endl;
+//std::cerr << json << "\n\n";
 		if (index >= json_length) {
 			if (check_buffer())
 				parse_numeric(value);
