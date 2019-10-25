@@ -22,11 +22,16 @@ private:
 	bool check_buffer();
 	
 	//overrides
-//	virtual void parse_object(element_object *&) override;
 	virtual void eat_whitespace(int idx) override;
+	
+//	jsonP_buffer_parser(std::string json) : jsonP_parser(json) {}
+	
+protected:
+	//overrides
 	virtual void parse_key(std::string &) override;
 	virtual void parse_bool(bool &) override;
 	virtual element_type parse_numeric(std::string &) override;
+//	virtual void parse_object(element_object *&) override;
 	
 public:
 	jsonP_buffer_parser(std::string file_name, int buf_sz = 8192);

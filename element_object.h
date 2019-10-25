@@ -16,8 +16,10 @@ public:
 	~element_object();
 
 	void add_element(std::string key, element *e);
-	element_object * get_object_value() override;
+	bool contains_key(std::string &key);
 	
+	//overrides
+	element_object * get_object_value() override;
 	std::string & get_as_string(std::string key) override;
 	bool get_as_boolean(std::string key) override;
 	int get_as_numeric_int(std::string key) override;

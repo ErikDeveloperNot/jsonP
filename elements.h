@@ -19,7 +19,7 @@ private:
 	
 public:
 	element_string(std::string s) : element{string},  value{s} {}
-	~element_string() = default;//{ std::cout << "element_string destructor" << std::endl; }
+//	~element_string() = default;//{ std::cout << "element_string destructor" << std::endl; }
 	
 	std::string & get_string_value() override { return value; }
 
@@ -80,7 +80,7 @@ public:
 	element_numeric(double d) : element{numeric_double}, value{d} {}
 	element_numeric(long l) : element{numeric_long}, value{double(l)} {}
 	element_numeric(int i) : element{numeric_int}, value{double(i)} {}
-	~element_numeric() = default;// { std::cout << "element_numeric destructor" << std::endl; }
+//	~element_numeric() = default;// { std::cout << "element_numeric destructor" << std::endl; }
 	
 	double get_double_value() override { return value; }
 	int get_int_value() override { return int(value); }
@@ -115,7 +115,7 @@ private:
 	
 public:
 	element_boolean(bool b) : element{boolean}, value{b} {}
-	~element_boolean() = default; //{ std::cout << "element_boolean destructor" << std::endl; }
+//	~element_boolean() = default; //{ std::cout << "element_boolean destructor" << std::endl; }
 	
 	bool get_boolean_value() override { return value; }
 	
@@ -135,7 +135,7 @@ class element_null : public element
 {
 public:
 	element_null() : element{null} {}
-	~element_null() = default;
+//	~element_null() = default;
 	
 	void stringify(std::string &s) override {
 		s += "null";
@@ -181,9 +181,13 @@ public:
 		 * update 10/19/2019 - i guess hetrogenous arrays are allowed, so add anytype
 		 */
 //		if (e->get_type() == elements_types) {
+		if (e) {
 			elements.push_back(e); 
 			e->incr_count();
 			return true;
+		} else {
+			return false;
+		}
 //		} else {
 //			
 //			if (elements_types == null) {

@@ -12,7 +12,9 @@ element_object::element_object() : element{object}
 element_object::~element_object()
 {
 	for (auto it = elements.begin(); it != elements.end(); it++) {
+//std::cout << "1\n";
 		if (it->second->get_count() < 1) {
+//std::cout << "deleting element with key: " << it->first << ", element type: " << it->second->get_type() << std::endl;
 			delete it->second;
 		}
 	}
@@ -21,8 +23,20 @@ element_object::~element_object()
 
 void element_object::add_element(std::string key, element* e)
 {
-	elements[key] = e;
-	e->incr_count();
+//std::cout << "element_object::add_element key: " << key << ", " << e->get_type() << std::endl;
+	if (e != nullptr) {
+//std::cout << "type: " << e->get_type() << std::endl;
+//std::cout << "count: " << e->ref_count << std::endl;
+//std::cout << "elements size: " << elements.size() << std::endl;
+		elements[key] = e;
+		e->incr_count();
+	}
+}
+
+
+bool element_object::contains_key(std::string & key)
+{
+	return (elements.count(key) > 0) ? true : false;
 }
 
 
@@ -103,11 +117,16 @@ void element_object::stringify(std::string &doc)
 	doc += "{";
 	
 	for (auto it = elements.begin(); it != elements.end(); ++it) {
+//std::cout << "**" << std::endl;
+//std::cout << "name: " << it->first << "\n";
+//std::cout << "type: " << it->second->get_type() << "\n";
 		doc += quote;
 		doc += it->first;
 		doc += quote_colon;
-		it->second->stringify(doc);
+		if (it->second)
+			it->second->stringify(doc);
 		doc += comma;
+//std::cout << doc << "\n\n";
 	}
 
 	if (doc[doc.length()-1] == ',')
@@ -115,4 +134,3 @@ void element_object::stringify(std::string &doc)
 	else
 		doc += "}";
 }
-

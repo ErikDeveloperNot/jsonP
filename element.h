@@ -21,8 +21,8 @@ class element_object;
 class element
 {
 private:
-	int ref_count;
 	element_type type;
+	int ref_count;
 	
 	const char* get_error() {
 		switch (type)
@@ -58,11 +58,34 @@ private:
 	
 public:
 	element() : ref_count{0} {}
-	element(element_type t) : ref_count{0}, type{t} {};
-	
+	element(element_type t) : type{t}, ref_count{0} {};
+//int ref_count;	
 	virtual ~element() { /*std::cout << "element: " << type << " destructor" << std::endl;*/ }
 	
 	element_type get_type() { return type; }
+	
+	std::string get_type_string() 
+	{
+		switch (type)
+		{
+			case object:
+				return "object"; break;
+			case array:
+				return "array"; break;
+			case string:
+				return "string"; break;
+			case boolean:
+				return "boolean"; break;
+			case numeric_int:
+				return "numeric int"; break;
+			case numeric_double:
+				return "numeric double"; break;
+			case numeric_long:
+				return "numeric long"; break;
+			case null:
+				return "null"; break;
+		}
+	}
 	
 	//methods used by the individual elements, if not overridden then throws
 	virtual std::string & get_string_value() { throw jsonP_exception{get_error()}; }

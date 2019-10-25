@@ -111,11 +111,11 @@ jsonP_doc* jsonP_buffer_parser::parse()
 		}
 
 		if (json[index] == '{') {
-			element_object *obj;
+			element_object *obj = new element_object{};
 			parse_object(obj);
 			doc = new jsonP_doc{obj};
 		} else if (json[index] == '[') {
-			element_array *arr;
+			element_array *arr = nullptr;
 			parse_array(arr);
 			doc = new jsonP_doc{arr};
 		} else {
@@ -124,6 +124,7 @@ jsonP_doc* jsonP_buffer_parser::parse()
 		
 	} else {
 		//throw
+		throw jsonP_exception{"Error parsing json text, does not appear to be an object or an array"};
 	}
 	
 	

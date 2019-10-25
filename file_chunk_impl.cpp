@@ -25,7 +25,6 @@ int file_chunk_impl::get_next(char *buf, int cnt)
 		return 0;
 		
 	if (fp == NULL) {
-//std::cout << "opening\n";
 		fp = std::fopen(file_name.c_str(), "r");
 			
 		if (fp != NULL) {
