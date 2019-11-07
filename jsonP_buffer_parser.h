@@ -12,6 +12,7 @@ private:
 	int buffer_size;
 	char *buffer;
 	bool more_chunks;
+	int read;
 	IChunk_reader *reader = nullptr;
 	
 	//magic numbers

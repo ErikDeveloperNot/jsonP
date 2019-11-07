@@ -6,17 +6,54 @@
 
 #include <string>
 
+const int ltr_b = (int)'b';
+const int space = (int)' ';
+const int tab = (int)'\t';
+const int new_line = (int)'\n';
+const int car_return = (int)'\r';
+const int quote_int = (int)'"';
+const int bk_slsh = (int)'\\';
+const int fwd_slsh = (int)'/';
+const int comma_int = (int)',';
+const int lft_curly = (int)'{';
+const int rt_curly = (int)'}';
+const int lft_brac = (int)'[';
+const int rt_brac = (int)']';
+const int colon = (int)':';
+const int ltr_f = (int)'f';
+const int ltr_r = (int)'r';
+const int ltr_n = (int)'n';
+const int ltr_t = (int)'t';
+const int ltr_u = (int)'u';
+const int ltr_e = (int)'e';
+const int ltr_E = (int)'E';
+const int ltr_T = (int)'T';
+const int ltr_F = (int)'F';
+const int zero = (int)'0';
+const int nine = (int)'9';
+const int plus = (int)'+';
+const int minus = (int)'-';
+const int period = (int)'.';
+	
 
 class jsonP_parser
 {
 protected:
-	std::string json;
-	int json_length;
+//	std::string json;
+	std::string json_str;
+	const char * json = nullptr;
+	unsigned long json_length;
 	int index;
 	bool look_for_key;
 	
 //	bool buffer_parser;
+
+	//error stuff
+	std::string error_string;
+	int error_index;
+	std::string error_json_snip;
 	
+	//virtual parse commands
 	virtual void eat_whitespace(int);
 	virtual void parse_key(std::string &);
 	virtual void parse_bool(bool &);
@@ -28,10 +65,10 @@ protected:
 //	void parse_value(element *&);
 //	void parse_array(element_array *&);
 //	void parse_object(element_object *&);
-	void parse_numeric(long &);
-	void parse_numeric_double(double &);
-	void parse_numeric_int(int &);
-	element_type parse_numeric(int & start, int & end);	//dont use
+//	void parse_numeric(long &);
+//	void parse_numeric_double(double &);
+//	void parse_numeric_int(int &);
+//	element_type parse_numeric(int & start, int & end);	//dont use
 	
 //	long numeric_total{0};
 //	long bool_total{0};
@@ -50,14 +87,22 @@ protected:
 	virtual inline element_object * create_element_object() { return new element_object{}; }
 	virtual inline void add_object_element(element_object *o, element *e, std::string &k) { o->add_element(k, e); }
 	
+	void set_error(std::string error);
+	
 public:
 	jsonP_parser() = default;
-	jsonP_parser(std::string json);
+	jsonP_parser(std::string & json);
+	jsonP_parser(const char * json, unsigned long);
 	
 	~jsonP_parser() = default;
 
 	jsonP_doc * parse();
 	jsonP_doc * parse(std::string & json);
+	jsonP_doc * parse(const char * json, unsigned long);
+	
+	std::string get_error_string() { return error_string; }
+	int get_error_index() { return error_index; }
+	std::string get_error_snip(int chars_before, int chars_after);
 };
 
 #endif // _JSONP_PARSER_H_

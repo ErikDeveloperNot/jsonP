@@ -36,29 +36,66 @@ jsonP_buffer_parser::~jsonP_buffer_parser()
 }
 
 
+// std::string version
+//int jsonP_buffer_parser::read_next_chunk()
+//{
+////	std::cout << "reader->get_next about to be called\n";
+//	char left_over[json_length - index + 1];
+//	int j{0};
+//	
+//	for (int i{index}; i < json_length; i++, j++)
+//		left_over[j] = json[i];
+//		
+//	left_over[j] = '\0';
+//	json = left_over;
+//	
+//	int read = reader->get_next(buffer, buffer_size);
+//	
+//	if (read < 0)
+//		throw jsonP_exception{"JsonP_buffer_parser error in getting more chunks from implemented IChunk_reader"};
+//	
+////	std::cout << "j: " << read << "\n";
+//	buffer[read] = '\0';
+//	json += buffer;
+//	index = 0;
+//	json_length = json.length();
+////std::cout << "read: " << read << ", json:\n" << json << std::endl;
+//
+//	if (read == 0) {
+//		more_chunks = false;
+//	}
+//
+//	return read;
+//}
+
+
 int jsonP_buffer_parser::read_next_chunk()
 {
 //	std::cout << "reader->get_next about to be called\n";
-	char left_over[json_length - index + 1];
-	int j{0};
-	
-	for (int i{index}; i < json_length; i++, j++)
-		left_over[j] = json[i];
-		
-	left_over[j] = '\0';	
-	json = left_over;
-	
-	int read = reader->get_next(buffer, buffer_size);
+	if (!more_chunks)
+		return 0;
+
+	int i{0};
+	for ( ; index < json_length; i++, index++)
+		buffer[i] = buffer[index];
+
+	read = reader->get_next(&buffer[i], buffer_size - i);
 	
 	if (read < 0)
 		throw jsonP_exception{"JsonP_buffer_parser error in getting more chunks from implemented IChunk_reader"};
 	
-//	std::cout << "j: " << read << "\n";
-	buffer[read] = '\0';
-	json += buffer;
+//std::cout << "read: " << read << ", i: " << i << "\n";
+
+	if (i == 0)
+		json_length = read;
+	else
+		json_length = read + i;
+	
+	buffer[json_length] = '\0';
 	index = 0;
-	json_length = json.length();
-//std::cout << "read: " << read << ", json:\n" << json << std::endl;
+	json = buffer;
+
+//std::cout << "json_length: " << json_length << ", read: " << read << ", json:\n" << json << std::endl;
 
 	if (read == 0) {
 		more_chunks = false;
@@ -90,9 +127,11 @@ bool jsonP_buffer_parser::check_buffer()
 jsonP_doc* jsonP_buffer_parser::parse()
 {
 	int r{0};
-	json = "";
+//	json = "";
 	json_length = 0;
 	index = 0;
+	read = 0;
+//	index = buffer_size;
 	more_chunks = true;
 	jsonP_doc *doc = nullptr;
 	
@@ -124,7 +163,7 @@ jsonP_doc* jsonP_buffer_parser::parse()
 		
 	} else {
 		//throw
-		throw jsonP_exception{"Error parsing json text, does not appear to be an object or an array"};
+		throw jsonP_exception{"Error parsing json text, error reading first chunk"};
 	}
 	
 	
