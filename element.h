@@ -84,6 +84,11 @@ public:
 				return "numeric long"; break;
 			case null:
 				return "null"; break;
+			default :
+			{
+				std::cout << "Error: unknown elementtype of: %d, returning String" << std::endl;
+				return "string";
+			}	
 		}
 	}
 	
