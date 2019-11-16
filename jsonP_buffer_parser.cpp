@@ -173,19 +173,22 @@ jsonP_doc* jsonP_buffer_parser::parse()
 }
 
 
-element_type jsonP_buffer_parser::parse_numeric(std::string & value)
+//element_type jsonP_buffer_parser::parse_numeric(std::string & value)
+element_type jsonP_buffer_parser::parse_numeric()
 {
 	check_buffer();
 	element_type t;
 	
 	try {
-		t = jsonP_parser::parse_numeric(value);
+//		t = jsonP_parser::parse_numeric(value);
+t = jsonP_parser::parse_numeric();
 	} catch (jsonP_exception &ex) {
 //std::cerr << "jsonP_buffer_parser error caught paring numeric, index: " << index << ", json_length: " << json_length << std::endl;
 //std::cerr << json << "\n\n";
 		if (index >= json_length) {
 			if (check_buffer())
-				parse_numeric(value);
+//				parse_numeric(value);
+parse_numeric();
 			else
 				throw ex;
 		} else {

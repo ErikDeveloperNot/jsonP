@@ -7,7 +7,7 @@ jsonP_parser::jsonP_parser(std::string & json_) : json_str{json_}, look_for_key{
 }
 
 
-jsonP_parser::jsonP_parser(const char * json_, unsigned long length) : json{json_}, json_length{length}, look_for_key{false}
+jsonP_parser::jsonP_parser(char * json_, unsigned long length) : json{json_}, json_length{length}, look_for_key{false}
 {
 }
 
@@ -17,17 +17,17 @@ jsonP_doc * jsonP_parser::parse()
 	if (json != nullptr)
 		return parse(json, json_length);
 	else
-		return parse(json_str.c_str(), json_str.length());
+		return parse((char*)json_str.c_str(), json_str.length());
 }
 
 
 jsonP_doc * jsonP_parser::parse(std::string & json_)
 {
-	return parse(json_.c_str(), json_.length());
+	return parse((char*)json_.c_str(), json_.length());
 }
 
 
-jsonP_doc * jsonP_parser::parse(const char * json_, unsigned long length)
+jsonP_doc * jsonP_parser::parse(char * json_, unsigned long length)
 {
 //	json = json_;
 json = json_;
@@ -242,7 +242,8 @@ void jsonP_parser::parse_bool(bool& value)
 //}
 
 
-element_type jsonP_parser::parse_numeric(std::string & number)
+//element_type jsonP_parser::parse_numeric(std::string & number)
+element_type jsonP_parser::parse_numeric()
 {
 	bool is_long{true};
 //	char c = json[index];
@@ -252,10 +253,11 @@ element_type jsonP_parser::parse_numeric(std::string & number)
 	bool exp_sign{false};
 	bool dec{true};
 
+int s = index-1;
+
 //	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
 	while (c != space && c != tab && c != new_line && c != car_return && c != comma_int && c != rt_brac && c != rt_curly) {
-//		number += c;
-		number += json[index];
+//		number += json[index];
 	
 //		if (c >= '0' && c <= '9') {
 		if (c >= zero && c <= nine) {
@@ -286,6 +288,12 @@ element_type jsonP_parser::parse_numeric(std::string & number)
 //		c = json[++index];
 		c = (int)json[++index];
 	}
+	
+while (s < index-1) {
+	json[s] = json[s+1];
+	s++;
+}
+json[s] = '\0';
 	
 	if (is_long)
 		return numeric_long;
@@ -327,29 +335,61 @@ void jsonP_parser::parse_value(element *& value)
 		value = create_boolean_element(bool_val);
 //	} else if ((json[index] >= '0' && json[index] <= '9') || json[index] == '-' || json[index] == '+') {
 	} else if (((int)json[index] >= zero && (int)json[index] <= nine) || (int)json[index] == minus || (int)json[index] == plus) {
-		std::string number;
+//		std::string number;
+int s = index;
 		
-		switch (parse_numeric(number))//start, end)) 
+//		switch (parse_numeric(number))//start, end)) 
+		switch (parse_numeric())
 		{
 			case numeric_int :
 //std::cout << "parse numeric returned int\n";
 //				value = new element_numeric{atoi(json.substr(start, end).c_str())};
 //				value = new element_numeric{atoi(number.c_str())};
-				value = create_int_element(number);
+//				value = create_int_element(number);
+//value = new element_numeric{number, numeric_int};
+{
+//char *c = (char*) malloc(index-s+1);
+//int i=0;
+//while (s < index)
+//	c[i++] = json[s++];
+//c[i] = '\0';
+//value = new element_numeric{c, numeric_int};
+value = new element_numeric{&json[s-1], numeric_int};
 				break;
+}
 			case numeric_long :
 //std::cout << "parse numeric returned long\n";
 //				value = new element_numeric{atol(json.substr(start, end).c_str())};
 //				value = new element_numeric{atol(number.c_str())};
-				value = create_long_element(number);
+//				value = create_long_element(number);
+//value = new element_numeric{number, numeric_long};
+{
+//char *c = (char*) malloc(index-s+1);
+//int i=0;
+//while (s < index)
+//	c[i++] = json[s++];
+//c[i] = '\0';
+//value = new element_numeric{c, numeric_long};
+value = new element_numeric{&json[s-1], numeric_long};
 				break;
+}
 			case numeric_double :
 
 //std::cout << "parse numeric returned double\n";
 //				value = new element_numeric{atof(json.substr(start, end).c_str())};
 //				value = new element_numeric{atof(number.c_str())};
-				value = create_float_element(number);
+//				value = create_float_element(number);
+//value = new element_numeric{number, numeric_double};
+{
+//char *c = (char*) malloc(index-s+1);
+//int i=0;
+//while (s < index)
+//	c[i++] = json[s++];
+//c[i] = '\0';
+//value = new element_numeric{c, numeric_double};
+value = new element_numeric{&json[s-1], numeric_double};
 				break;
+}
 			default :
 				std::string err = "parse error, invalid return type from parse_numeric at index: " + std::to_string(index);
 				set_error(err);
@@ -569,8 +609,13 @@ std::string jsonP_parser::get_error_snip(int chars_before, int chars_after)
 {
 	chars_before = (error_index - chars_before >= 0) ? error_index - chars_before : 0;
 	chars_after = (error_index + chars_after < json_length) ? error_index + chars_after : json_length - 1;
+std::cout << "error index: " << error_index << "json_length: " << json_length << ", b4: " << chars_after << std::endl;
+while (chars_before < chars_after)
+	std::cout << json[chars_before++] << std::endl;
+
+return "gg";
 	
-	return (std::string(&json[chars_before], chars_after-chars_before));
+//	return (std::string(&json[chars_before], chars_after-chars_before));
 }
 
 

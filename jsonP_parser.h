@@ -41,7 +41,7 @@ class jsonP_parser
 protected:
 //	std::string json;
 	std::string json_str;
-	const char * json = nullptr;
+	char * json = nullptr;
 	unsigned long json_length;
 	int index;
 	bool look_for_key;
@@ -57,7 +57,8 @@ protected:
 	virtual void eat_whitespace(int);
 	virtual void parse_key(std::string &);
 	virtual void parse_bool(bool &);
-	virtual element_type parse_numeric(std::string &);
+//	virtual element_type parse_numeric(std::string &);
+virtual element_type parse_numeric();
 	virtual void parse_array(element_array *&);
 	virtual void parse_object(element_object *&);
 	virtual void parse_value(element *&);
@@ -76,9 +77,15 @@ protected:
 
 	virtual inline element_string * create_string_element(std::string &str) { return new element_string{str}; }
 	virtual inline element_boolean * create_boolean_element(bool b) { return new element_boolean{b}; }
-	virtual inline element_numeric * create_int_element(std::string &str) { return new element_numeric{atoi(str.c_str())}; }
-	virtual inline element_numeric * create_long_element(std::string &str) { return new element_numeric{atol(str.c_str())}; }
-	virtual inline element_numeric * create_float_element(std::string &str) { return new element_numeric{atof(str.c_str())}; }
+//	virtual inline element_numeric * create_int_element(std::string &str) { return new element_numeric{atoi(str.c_str())}; }
+//	virtual inline element_numeric * create_long_element(std::string &str) { return new element_numeric{atol(str.c_str())}; }
+//	virtual inline element_numeric * create_float_element(std::string &str) { return new element_numeric{atof(str.c_str())}; }
+virtual inline element_numeric * create_int_element(char *ptr) { return new element_numeric{ptr, numeric_int}; }
+virtual inline element_numeric * create_long_element(char *ptr) { return new element_numeric{ptr, numeric_long}; }
+virtual inline element_numeric * create_float_element(char *ptr) { return new element_numeric{ptr, numeric_double}; }
+
+//virtual inline element_numeric * create_numeric_element(std::string &str, element_type t) 
+
 	virtual inline element_null * create_null_element() { return new element_null{}; }
 	
 	virtual inline element_array * create_element_array(element_type t) { return new element_array{t}; }
@@ -92,13 +99,13 @@ protected:
 public:
 	jsonP_parser() = default;
 	jsonP_parser(std::string & json);
-	jsonP_parser(const char * json, unsigned long);
+	jsonP_parser(char * json, unsigned long);
 	
 	~jsonP_parser() = default;
 
 	jsonP_doc * parse();
 	jsonP_doc * parse(std::string & json);
-	jsonP_doc * parse(const char * json, unsigned long);
+	jsonP_doc * parse(char * json, unsigned long);
 	
 	std::string get_error_string() { return error_string; }
 	int get_error_index() { return error_index; }

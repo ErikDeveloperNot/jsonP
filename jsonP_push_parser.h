@@ -31,7 +31,8 @@ private:
 	//overrides
 	virtual void parse_key(std::string &) override;
 	virtual void parse_bool(bool &) override;
-	virtual element_type parse_numeric(std::string &) override;
+//	virtual element_type parse_numeric(std::string &) override;
+virtual element_type parse_numeric() override;
 	virtual void parse_array(element_array *&) override;
 	virtual void parse_object(element_object *&) override;
 	virtual void parse_value(element *&) override;
@@ -44,18 +45,27 @@ private:
 		return ((parsing) ? new element_boolean{b} : nullptr);
 	}
 	
-	virtual inline element_numeric * create_int_element(std::string &str) override { 
-		return ((parsing) ? new element_numeric{atoi(str.c_str())} : nullptr);
-	}
+//	virtual inline element_numeric * create_int_element(std::string &str) override { 
+//		return ((parsing) ? new element_numeric{atoi(str.c_str())} : nullptr);
+//	}
+	virtual inline element_numeric * create_int_element(char *ptr) override { 
+		return ((parsing) ? new element_numeric{ptr, numeric_int} : nullptr);
+	}	
 	
-	virtual inline element_numeric * create_long_element(std::string &str) override { 
-		return ((parsing) ? new element_numeric{atol(str.c_str())} : nullptr); 
-	}
-	
-	virtual inline element_numeric * create_float_element(std::string &str) override { 
-		return ((parsing) ? new element_numeric{atof(str.c_str())} : nullptr); 
-	}
-	
+//	virtual inline element_numeric * create_long_element(std::string &str) override { 
+//		return ((parsing) ? new element_numeric{atol(str.c_str())} : nullptr); 
+//	}
+	virtual inline element_numeric * create_long_element(char *ptr) override { 
+		return ((parsing) ? new element_numeric{ptr, numeric_long} : nullptr);
+	}	
+
+//	virtual inline element_numeric * create_float_element(std::string &str) override { 
+//		return ((parsing) ? new element_numeric{atof(str.c_str())} : nullptr); 
+//	}
+	virtual inline element_numeric * create_float_element(char *ptr) override { 
+		return ((parsing) ? new element_numeric{ptr, numeric_double} : nullptr);
+	}	
+
 	virtual inline element_null * create_null_element() override { 
 		return ((parsing) ? new element_null{} : nullptr); 
 	}

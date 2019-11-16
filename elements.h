@@ -74,33 +74,38 @@ public:
 class element_numeric : public element
 {
 private:
-	double value;
+//	double value;
+//	std::string value;
+char *value = nullptr;
 	
 public:
-	element_numeric(double d) : element{numeric_double}, value{d} {}
-	element_numeric(long l) : element{numeric_long}, value{double(l)} {}
-	element_numeric(int i) : element{numeric_int}, value{double(i)} {}
+//	element_numeric(double d) : element{numeric_double}, value{std::to_string(d)} {} //value{d} {}
+//	element_numeric(long l) : element{numeric_long}, value{std::to_string(l)} {} //value{double(l)} {}
+//	element_numeric(int i) : element{numeric_int}, value{std::to_string(i)} {} //value{double(i)} {}
+//element_numeric(std::string s, element_type t) : element{t}, value{s} {} 
+element_numeric(char * ptr, element_type t) : element{t}, value{ptr} {}
 //	~element_numeric() = default;// { std::cout << "element_numeric destructor" << std::endl; }
 	
-	double get_double_value() override { return value; }
-	int get_int_value() override { return int(value); }
-	long get_long_value() override { return long(value); }
+	double get_double_value() override { return atof(value); } //.c_str()); } //{ return value; }
+	int get_int_value() override { return atoi(value); } //.c_str()); } //{ return int(value); }
+	long get_long_value() override { return atol(value); } //.c_str()); } //{ return long(value); }
 	
 	void stringify(std::string &s) override {
-		switch (get_type())
-		{
-			case numeric_int :
-				s += std::to_string(int(value));
-				break;
-			case numeric_long :
-				s += std::to_string(long(value));
-				break;
-			case numeric_double :
-				s += std::to_string(value);
-				break;
-			default :
-				s += std::to_string(value);
-		}
+//		switch (get_type())
+//		{
+//			case numeric_int :
+//				s += std::to_string(int(value));
+//				break;
+//			case numeric_long :
+//				s += std::to_string(long(value));
+//				break;
+//			case numeric_double :
+//				s += std::to_string(value);
+//				break;
+//			default :
+//				s += std::to_string(value);
+//		}
+		s += value;
 	}
 };
 

@@ -124,7 +124,8 @@ void jsonP_push_parser::parse_object(element_object *& value)
 }
 
 
-element_type jsonP_push_parser::parse_numeric(std::string & value)
+//element_type jsonP_push_parser::parse_numeric(std::string & value)
+element_type jsonP_push_parser::parse_numeric()
 {
 	std::string key{cur_key};
 	bool root_parse{false};
@@ -134,7 +135,8 @@ element_type jsonP_push_parser::parse_numeric(std::string & value)
 		parsing_started = true;
 	}
 	
-	element_type type = jsonP_buffer_parser::parse_numeric(value);
+//	element_type type = jsonP_buffer_parser::parse_numeric(value);
+element_type type = jsonP_buffer_parser::parse_numeric();
 	
 	if (root_parse)
 		process_element = true;

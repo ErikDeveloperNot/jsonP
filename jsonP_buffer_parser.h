@@ -31,7 +31,8 @@ protected:
 	//overrides
 	virtual void parse_key(std::string &) override;
 	virtual void parse_bool(bool &) override;
-	virtual element_type parse_numeric(std::string &) override;
+//	virtual element_type parse_numeric(std::string &) override;
+virtual element_type parse_numeric() override;
 //	virtual void parse_object(element_object *&) override;
 	
 public:
