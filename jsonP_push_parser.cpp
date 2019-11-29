@@ -84,7 +84,7 @@ void jsonP_push_parser::parse_key(std::string & value)
 }
 
 
-void jsonP_push_parser::parse_array(element_array *& value)
+unsigned int jsonP_push_parser::parse_array(element_array *& value)
 {
 	std::string key{cur_key};
 	bool root_parse{false};
@@ -94,14 +94,16 @@ void jsonP_push_parser::parse_array(element_array *& value)
 		parsing_started = true;
 	}
 		
-	jsonP_buffer_parser::parse_array(value);
+	unsigned int to_return = jsonP_buffer_parser::parse_array(value);
 	
 	if (root_parse)
 		process_element = true;
+		
+	return to_return;
 }
 
 
-void jsonP_push_parser::parse_object(element_object *& value)
+unsigned int jsonP_push_parser::parse_object(element_object *& value)
 {
 	std::string key{cur_key};
 	bool root_parse{false};
@@ -114,13 +116,15 @@ void jsonP_push_parser::parse_object(element_object *& value)
 	path_tokens.push_back(key + "/");
 	set_cur_path();
 	
-	jsonP_buffer_parser::parse_object(value);
+	unsigned int to_return = jsonP_buffer_parser::parse_object(value);
 	
 	if (root_parse)
 		process_element = true;
 		
 	path_tokens.pop_back();
 	set_cur_path();
+	
+	return to_return;
 }
 
 

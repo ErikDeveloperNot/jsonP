@@ -14,7 +14,7 @@ const static std::string quote_colon{"\":"};
 const static std::string comma{","};
 
 //enum element_type {object=1, string=2, numeric=3, array=4, boolean=5};
-enum element_type {object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, array=6, boolean=7, null=8};
+enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, array_ptr=6, array=7, boolean=8, null=9};
 
 class element_object;
 
@@ -46,6 +46,7 @@ private:
 			return "This entity is an array";
 			break;
 			case object:
+			case object_ptr:
 			return "This entity is an object";
 			break;
 			case null:
@@ -109,6 +110,13 @@ public:
 	virtual double get_as_numeric_double(std::string key) { throw jsonP_exception{get_error()}; }
 	virtual std::vector<element *> & get_as_array(std::string key) { throw jsonP_exception{get_error()}; }
 	virtual element_object * get_as_object(std::string key) { throw jsonP_exception{get_error()}; }
+//	virtual std::string & get_as_string(char *key) { throw jsonP_exception{get_error()}; }
+//	virtual bool get_as_boolean(char *key) { throw jsonP_exception{get_error()}; }
+//	virtual int get_as_numeric_int(std::string key) { throw jsonP_exception{get_error()}; }
+//	virtual long get_as_numeric_long(std::string key) { throw jsonP_exception{get_error()}; }
+//	virtual double get_as_numeric_double(std::string key) { throw jsonP_exception{get_error()}; }
+//	virtual std::vector<element *> & get_as_array(std::string key) { throw jsonP_exception{get_error()}; }
+//	virtual element_object * get_as_object(std::string key) { throw jsonP_exception{get_error()}; }
 	
 	void incr_count() { ref_count++; }
 	int get_count() { return --ref_count; }

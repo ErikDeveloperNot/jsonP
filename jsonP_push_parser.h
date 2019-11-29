@@ -33,8 +33,8 @@ private:
 	virtual void parse_bool(bool &) override;
 //	virtual element_type parse_numeric(std::string &) override;
 virtual element_type parse_numeric() override;
-	virtual void parse_array(element_array *&) override;
-	virtual void parse_object(element_object *&) override;
+	virtual unsigned int parse_array(element_array *&) override;
+	virtual unsigned int parse_object(element_object *&) override;
 	virtual void parse_value(element *&) override;
 	
 	virtual inline element_string * create_string_element(std::string &str) override { 

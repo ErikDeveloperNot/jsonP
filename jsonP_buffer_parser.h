@@ -23,7 +23,25 @@ private:
 	bool check_buffer();
 	
 	//overrides
-	virtual void eat_whitespace(int idx) override;
+//	virtual void eat_whitespace(int idx) override;
+	virtual inline void eat_whitespace() override {
+		check_buffer();
+	
+		try {
+			jsonP_parser::eat_whitespace();
+		} catch (jsonP_exception &ex) {
+			if (index >= json_length) {
+				if (check_buffer())
+					eat_whitespace();
+				else
+					throw ex;
+			} else {
+				throw ex;
+			}
+		}
+		
+		check_buffer();
+	}
 	
 //	jsonP_buffer_parser(std::string json) : jsonP_parser(json) {}
 	

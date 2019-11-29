@@ -137,13 +137,15 @@ jsonP_doc* jsonP_buffer_parser::parse()
 	
 	//get first chunk and start parsing
 	if (read_next_chunk() > 2) {
-		eat_whitespace(index);
-
+//		eat_whitespace(index);
+		eat_whitespace();
+		
 		while (index >= json_length) {
 			r = read_next_chunk();
 			
 			if (r > 0) {
-				eat_whitespace(index);
+//				eat_whitespace(index);
+				eat_whitespace();
 			} else {
 				//throw end of file reached and never found json
 			}
@@ -244,23 +246,23 @@ void jsonP_buffer_parser::parse_key(std::string & value)
 }
 
 
-void jsonP_buffer_parser::eat_whitespace(int idx)
-{
-	check_buffer();
-	
-	try {
-		jsonP_parser::eat_whitespace(idx);
-	} catch (jsonP_exception &ex) {
-		if (index >= json_length) {
-			if (check_buffer())
-				eat_whitespace(idx);
-			else
-				throw ex;
-		} else {
-			throw ex;
-		}
-	}
-	
-	check_buffer();
-}
+//void jsonP_buffer_parser::eat_whitespace(int idx)
+//{
+//	check_buffer();
+//	
+//	try {
+//		jsonP_parser::eat_whitespace(idx);
+//	} catch (jsonP_exception &ex) {
+//		if (index >= json_length) {
+//			if (check_buffer())
+//				eat_whitespace(idx);
+//			else
+//				throw ex;
+//		} else {
+//			throw ex;
+//		}
+//	}
+//	
+//	check_buffer();
+//}
 

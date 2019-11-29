@@ -16,9 +16,11 @@ class element_string : public element
 {
 private:
 	std::string value;
+//char * value = nullptr;
 	
 public:
 	element_string(std::string s) : element{string},  value{s} {}
+//element_string(char *s) : element{string},  value{s} {}
 //	~element_string() = default;//{ std::cout << "element_string destructor" << std::endl; }
 	
 	std::string & get_string_value() override { return value; }
