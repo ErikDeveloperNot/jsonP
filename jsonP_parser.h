@@ -3,16 +3,18 @@
 
 #include "element_object.h"
 //#include "jsonP_exception.h"
+#include "jsonP_json.h"
 
 #include <string>
 
-//*(element_type*)&data[data_i]
-#define get_element_type(buf,indx)		*(element_type*)&(buf)[ (indx) ]
-#define get_key_location(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
-#define get_key_count(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
+//#define get_element_type(buf,indx)		*(element_type*)&(buf)[ (indx) ]
+//#define get_key_location(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
+//#define get_key_count(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
+//#define increase_stack_buffer()			((stack_buf_sz) - (stack_i)) < 50
+//#define increase_data_buffer(needed)	((data_sz) - (data_i)) < needed
 
 
-typedef char byte;
+//typedef char byte;
 
 const int ltr_b = (int)'b';
 const int space = (int)' ';
@@ -43,54 +45,27 @@ const int plus = (int)'+';
 const int minus = (int)'-';
 const int period = (int)'.';
 
-static bool boolean_true = true;
-static bool boolean_false = false;
-static char root[] = "ROOT";
-static char *root_ptr = &root[0];
-//static byte boolean_true = 1;
-//static byte boolean_false = 0;
 
-//static size_t obj_member_sz = sizeof(element_type) + sizeof(byte*) + sizeof(char*);
-//static size_t obj_member_sz = sizeof(element_type) + sizeof(char*);
-static size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
-static size_t obj_root_sz = sizeof(unsigned int);
-static size_t arry_member_sz = obj_member_sz;
-static size_t arry_root_sz = obj_root_sz;
-
-//static size_t obj_root_mem_offx = sizeof(unsigned int);
-static size_t obj_member_key_offx = sizeof(element_type);
-//static size_t obj_member_val_offx = obj_member_key_offx + sizeof(char*);
-
-//static size_t arry_root_mem_offx = sizeof(unsigned int);
-static size_t arry_member_val_offx = sizeof(element_type);
+//static size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
+//static size_t obj_root_sz = sizeof(unsigned int);
+//static size_t arry_member_sz = obj_member_sz;
+//static size_t arry_root_sz = obj_root_sz;
+//static size_t obj_member_key_offx = sizeof(element_type);
+//static size_t arry_member_val_offx = sizeof(element_type);
 
 
-
-//static element_type object_type = object;
-
+// used to partition each element used during sorting
 struct obj_member
 {
-	element_type type;
-	char *key;
-	byte *value;
+	//byte b[obj_member_sz];      // <-- hardcode for now, see if I can change this with define if else ???
+	byte b[5];
 };
 
-struct obj_root 
-{
-	unsigned int num_keys;
-	obj_member *first_member = NULL;
-};
 
-struct arry_member
+struct parse_stats
 {
-	element_type type;
-	byte *value;
-};
-
-struct arry_root
-{
-	unsigned int num_elements;
-	arry_member *first_element = NULL;
+	unsigned short stack_buf_increases = 0;
+	unsigned short data_increases = 0;
 };
 	
 	
@@ -116,6 +91,7 @@ const uint8_t parse_flags[256] = {
 };
 
 
+
 class jsonP_parser
 {
 protected:
@@ -129,29 +105,18 @@ protected:
 	
 // STUFF for new modle to rid std::map and std::new for each element
 byte * stack_buf;
-//byte * obj_stack_buf;
-//byte * arry_stack_buf;
-//unsigned int obj_stack_i;
-//unsigned int arry_stack_i;
+unsigned int stack_buf_sz;
 unsigned int stack_i;
-
-obj_root *obj_root_ptr;
-obj_member *obj_member_ptr;
-
-unsigned int *uint_ptr;
-byte *byte_ptr;
-char *char_ptr;
-element_type *type_ptr;
 
 //change to array later so it can be blocks for now large buffer to see if i can get this to work
 byte * data;
+unsigned long data_sz;
 unsigned long data_i;
 
+bool use_json;
+bool shrink_buffers;
 
-//size_t obj_member_sz = sizeof(obj_member);
-//size_t obj_root_sz = sizeof(obj_root);
-//size_t arry_member_sz = sizeof(arry_member);
-//size_t arry_root_sz = sizeof(arry_root);
+parse_stats stats;
 // END STUFF for new modle to rid std::map and std::new for each element
 
 
@@ -170,53 +135,59 @@ unsigned long data_i;
 			index++;
 	}
 	
-	virtual void parse_key(std::string &);
-	virtual void parse_bool(bool &);
-//	virtual element_type parse_numeric(std::string &);
+//	virtual void parse_key(std::string &);
+//	virtual void parse_bool(bool &);
+//////	virtual element_type parse_numeric(std::string &);
+////	virtual element_type parse_numeric();
+//	virtual unsigned int parse_array(element_array *&);
+//	virtual unsigned int parse_object(element_object *&);
+//	virtual void parse_value(element *&);
+
+	virtual void parse_key();
+	virtual void parse_bool();
 	virtual element_type parse_numeric();
-	virtual unsigned int parse_array(element_array *&);
-	virtual unsigned int parse_object(element_object *&);
-	virtual void parse_value(element *&);
+	virtual unsigned int parse_array();
+	virtual unsigned int parse_object();
+	virtual void parse_value();
 	
 
-	virtual inline element_string * create_string_element(std::string &str) { return new element_string{str}; }
-	virtual inline element_boolean * create_boolean_element(bool b) { return new element_boolean{b}; }
-//	virtual inline element_numeric * create_int_element(std::string &str) { return new element_numeric{atoi(str.c_str())}; }
-//	virtual inline element_numeric * create_long_element(std::string &str) { return new element_numeric{atol(str.c_str())}; }
-//	virtual inline element_numeric * create_float_element(std::string &str) { return new element_numeric{atof(str.c_str())}; }
-virtual inline element_numeric * create_int_element(char *ptr) { return new element_numeric{ptr, numeric_int}; }
-virtual inline element_numeric * create_long_element(char *ptr) { return new element_numeric{ptr, numeric_long}; }
-virtual inline element_numeric * create_float_element(char *ptr) { return new element_numeric{ptr, numeric_double}; }
-
-//virtual inline element_numeric * create_numeric_element(std::string &str, element_type t) 
-
-	virtual inline element_null * create_null_element() { return new element_null{}; }
-	
-	virtual inline element_array * create_element_array(element_type t) { return new element_array{t}; }
-	virtual inline void add_array_element(element_array *a, element *e) { a->add_element(e); }
-	
-	virtual inline element_object * create_element_object() { return new element_object{}; }
-	virtual inline void add_object_element(element_object *o, element *e, std::string &k) { o->add_element(k, e); }
+//	virtual inline element_string * create_string_element(std::string &str) { return new element_string{str}; }
+//	virtual inline element_boolean * create_boolean_element(bool b) { return new element_boolean{b}; }
+//	virtual inline element_numeric * create_int_element(char *ptr) { return new element_numeric{ptr, numeric_int}; }
+//	virtual inline element_numeric * create_long_element(char *ptr) { return new element_numeric{ptr, numeric_long}; }
+//	virtual inline element_numeric * create_float_element(char *ptr) { return new element_numeric{ptr, numeric_double}; }
+//
+//	virtual inline element_null * create_null_element() { return new element_null{}; }
+//	
+//	virtual inline element_array * create_element_array(element_type t) { return new element_array{t}; }
+//	virtual inline void add_array_element(element_array *a, element *e) { a->add_element(e); }
+//	
+//	virtual inline element_object * create_element_object() { return new element_object{}; }
+//	virtual inline void add_object_element(element_object *o, element *e, std::string &k) { o->add_element(k, e); }
 	
 	void set_error(std::string error);
 
 void test_parse_object(unsigned int);
 void test_parse_array(unsigned int);
 
+
+
 public:
 	jsonP_parser() = default;
-	jsonP_parser(std::string & json);
-	jsonP_parser(char * json, unsigned long);
+	jsonP_parser(std::string & json, short options = 0);
+	jsonP_parser(char * json, unsigned long, short options = 0);
 	
 	~jsonP_parser();
 
-	jsonP_doc * parse();
-	jsonP_doc * parse(std::string & json);
-	jsonP_doc * parse(char * json, unsigned long);
-	
+	jsonP_json * parse();
+	jsonP_json * parse(std::string & json);
+	jsonP_json * parse(char * json, unsigned long);
+
 	std::string get_error_string() { return error_string; }
 	int get_error_index() { return error_index; }
 	std::string get_error_snip(int chars_before, int chars_after);
+	
+	parse_stats get_parse_stats() { return stats; }
 };
 
 #endif // _JSONP_PARSER_H_

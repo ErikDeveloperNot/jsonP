@@ -1,40 +1,64 @@
 #include "jsonP_parser.h"
-
 //#include <chrono>
 
 
 
-jsonP_parser::jsonP_parser(std::string & json_) : json_str{json_}, look_for_key{false}, stack_i{0}, data_i{0}
+jsonP_parser::jsonP_parser(std::string & json_, short options) : 
+json_str{json_}, 
+look_for_key{false}, 
+stack_i{0}, 
+data_i{0}
 {
-// For now just make initial 1mb, will be configurable
-stack_buf = (byte*) malloc(1024 * 10 * 10);
-data = (byte*) malloc(json_str.length() / 2);  //************ THIS NEEDS TO CHANGE ******************
+	use_json = (options & PRESERVE_JSON) ? false : true;
+	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
+
+	// For now just make initial 100kb, will be configurable
+	stack_buf_sz = 1024;// * 10 * 10;
+	stack_buf = (byte*) malloc(stack_buf_sz);
+
+	if (use_json)
+		data_sz = json_str.length() / 4;
+	else
+		data_sz = json_str.length();
+	
+	data = (byte*) malloc(data_sz); 
 }
 
 
-jsonP_parser::jsonP_parser(char * json_, unsigned long length) : 
+jsonP_parser::jsonP_parser(char * json_, unsigned long length, short options) : 
 json{json_}, 
 json_length{length}, 
 look_for_key{false},
 stack_i{0}, 
 data_i{0}
 {
-// For now just make initial 1mb, will be configurable
-stack_buf = (byte*) malloc(1024 * 10 * 10);
-data = (byte*) malloc(length * 3);   //************ THIS NEEDS TO CHANGE ******************
+	use_json = (options & PRESERVE_JSON) ? false : true;
+	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
+
+	// For now just make initial 1mb, will be configurable
+	stack_buf_sz = 1024;// * 10 * 10;
+	stack_buf = (byte*) malloc(stack_buf_sz);
+
+	if (use_json)
+		data_sz = length / 4;
+	else
+		data_sz = length;
+		
+	data = (byte*) malloc(data_sz);   
+std::cout << "use_json:" << use_json << ", shrink_buffers:" << shrink_buffers << std::endl;
 }
 
 
 jsonP_parser::~jsonP_parser()
 {
-//	free(stack_buf);
+	free(stack_buf);
 //	free(data);
 	
 	std::cout << "End jsonP destructor" << std::endl;
 }
 
 
-jsonP_doc * jsonP_parser::parse()
+jsonP_json * jsonP_parser::parse()
 {
 	if (json != nullptr)
 		return parse(json, json_length);
@@ -43,57 +67,71 @@ jsonP_doc * jsonP_parser::parse()
 }
 
 
-jsonP_doc * jsonP_parser::parse(std::string & json_)
+jsonP_json * jsonP_parser::parse(std::string & json_)
 {
 	return parse((char*)json_.c_str(), json_.length());
 }
 
 
-jsonP_doc * jsonP_parser::parse(char * json_, unsigned long length)
+jsonP_json * jsonP_parser::parse(char * json_, unsigned long length)
 {
-//	json = json_;
 	json = json_;
-//	json_length = json.length();
-json_length = length;
-	jsonP_doc *doc;
+	json_length = length;
+	jsonP_json *jsonPjson = nullptr;
+	
 	index = 0;
 	
 	if (json_length < 2)
 		throw jsonP_exception{"Error parsing into a json doc"};
 
-//	eat_whitespace(index);
 	eat_whitespace();
 	
 	if (json[index] == '{') {
-		element_object *obj = nullptr;
-stack_i += obj_member_sz;
-//*((char**)&stack_buf[obj_member_key_offx]) = root_ptr;
-*(unsigned int*)&stack_buf[obj_member_key_offx] = 0;
-*(element_type*)&stack_buf[0] = object;
-//std::cout << "TTTTTTT: " << *(unsigned int*)&stack_buf[1] << std::endl;
-memcpy(&data[data_i], &root, 4);
-data[data_i+4] = '\0';
-data_i = 5;
+		stack_i += obj_member_sz;
+		*(unsigned int*)&stack_buf[obj_member_key_offx] = 0;
+		*(element_type*)&stack_buf[0] = object;
+		data[data_i+4] = '\0';
+		data_i = 5;
 
-unsigned int i = parse_object(obj);
-		doc = new jsonP_doc{obj};
-
+		unsigned int i = parse_object();
+		
+		if (use_json)
+			jsonPjson = new jsonP_json{json, data, length, i+5};
+		else
+			jsonPjson = new jsonP_json{data, data, length, i+5};
+			
 std::cout << "stack_i = " << stack_i << "\ndata_i = " << data_i << ", i = " << i << std::endl;
-//std::cout << "root type: " << *((element_type*)&stack_buf[0]) << ", key: " << (unsigned int)data[*(unsigned int*)&stack_buf[1]] << std::endl;
-//std::cout << "root2 type: " << *(element_type*)&data[i] << ", Key: " << *(unsigned int*)&data[i+1] << std::endl;
+std::cout << "root type: " << *((element_type*)&stack_buf[0]) << ", key: " << (unsigned int)data[*(unsigned int*)&stack_buf[1]] << std::endl;
+std::cout << "root2 type: " << *(element_type*)&data[i] << ", Key: " << *(unsigned int*)&data[i+1] << std::endl;
 
 //test_parse_object(i+5);
-		
+
 	} else if (json[index] == '[') {
-		element_array *arr = nullptr;
-		parse_array(arr);
-		doc = new jsonP_doc{arr};
+		stack_i += arry_member_sz;
+		*(unsigned int*)&stack_buf[arry_member_val_offx] = 0;
+		*(element_type*)&stack_buf[0] = array_ptr;
+		data[data_i+4] = '\0';
+		data_i = 5;
+
+		unsigned int i = parse_array();
+		
+		if (use_json)
+			jsonPjson = new jsonP_json{json, data, length, i+5};
+		else
+			jsonPjson = new jsonP_json{data, data, length, i+5};
+		
+//test_parse_array(i+5);
 	} else {
 		set_error("Error parsing json text, does not appear to be an object or an array");
 		throw jsonP_exception{"Error parsing json text, does not appear to be an object or an array"};
 	}
 	
-	return doc;
+	if (shrink_buffers) {
+std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
+		data = (byte*)realloc(data, data_i);
+	}
+	
+	return jsonPjson;
 }
 
 
@@ -132,18 +170,12 @@ void jsonP_parser::test_parse_object(unsigned int i)
 			std::cout << ", key: " << json+loc << std::endl;
 		} else if (type == array_ptr) {
 			std::cout << ", Array key: " << json+get_key_location(data,loc) << std::endl;
-//std::cout << json+4  << " - " << json+10 << std::endl;
-
 			test_parse_array(loc+4);
 		} else if (type == null) {
 			std::cout << ", key: " << json+loc; // << std::endl;
 			std::cout << ", value: " <<  json+loc+strlen(json+loc)+1 << std::endl;
 		}
-
-		
-//		b_ptr += obj_member_sz;
 	}
-
 }
 
 
@@ -196,21 +228,8 @@ void jsonP_parser::test_parse_array(unsigned int i)
 	std::cout << "test_parse_array returning\n";
 }
 
-//void jsonP_parser::eat_whitespace(int idx)
-//{
-////	while ((json[index] == ' ' || json[index] == '\t' || json[index] == '\n' || json[index] == '\r') && json_length > index) 
-////		index++;
-////	while (((int)json[index] == space || (int)json[index] == tab || (int)json[index] == new_line || 
-////			(int)json[index] == car_return) && json_length > index) 
-////		index++;
-//		
-//	while ((json[index] == space || json[index] == tab || json[index] == new_line || 
-//			json[index] == car_return))// && json_length > index) 
-//		index++;
-//}
 
-
-void jsonP_parser::parse_key(std::string & key)
+void jsonP_parser::parse_key()
 {
 	index++;
 unsigned int start = index;	
@@ -228,8 +247,9 @@ unsigned int start = index;
 				case quote_int :
 				case fwd_slsh :
 				{
-					key += json[++index];
-					index++;
+//					key += json[++index];
+//					index++;
+					index += 2;
 					break;
 				}
 //				case 'b' :
@@ -246,7 +266,8 @@ unsigned int start = index;
 				case ltr_u :			//treat the same as control chars for now
 				{
 //					index++;
-					key += json[index++];
+//					key += json[index++];
+					index++;
 					break;
 				}
 				default :
@@ -258,75 +279,60 @@ unsigned int start = index;
 			}
 //		}	else if (json[index] == '"') {
 		}	else if ((int)json[index] == quote_int) {
-json[index] = '\0';
+			if (use_json)
+				json[index] = '\0';
+			
 			break;
 		} else {
-			key += json[index++];
+			index++;
 		}
 	}
-	
 
 	index++;
 
-if (!look_for_key) {
-//std::cout << "start: " << start << ", index: " << index << ", value_start: " << value_start << std::endl;
-	while (start < index) {
-		json[value_start++] = json[start++];
-//std::cout << 	json[value_start-1] << " : " << json[start-1] << std::endl; 
+	if (!look_for_key) {
+		if (use_json) {
+			while (start < index)
+				json[value_start++] = json[start++];
+		} else {
+			if (increase_data_buffer(index - start + 5)) {
+std::cout << "increasing the data buffer" << std::endl;
+				data_sz = (unsigned long)data_sz * 1.2 + index - start;
+				data = (byte*) realloc(data, data_sz);
+				stats.data_increases++;
+			}
+
+			while (start < index)
+				data[data_i++] = json[start++];
+				
+			data[data_i-1] = '\0';
+		}
+	} else if (!use_json) {
+		if (increase_data_buffer(index - start + 5)) {
+std::cout << "increasing the data buffer" << std::endl;
+			data_sz = (unsigned long)data_sz * 1.2 + index - start;
+			data = (byte*) realloc(data, data_sz);
+			stats.data_increases++;
+		}
+			
+		while (start < index)
+			data[data_i++] = json[start++];
+			
+		data[data_i-1] = '\0';
 	}
-//std::cout << json[value_start] << std::endl;
-}
-
-
-//	std::cout << "parse_key returning: " << key << ", next index: " << index << ", val: " << json[index] << std::endl;
 }
 
 
 // should only allow lowercase but accept either
-void jsonP_parser::parse_bool(bool& value)
+//void jsonP_parser::parse_bool(bool& value)
+void jsonP_parser::parse_bool()
 {
-//	if (json[index] == 't' || json[index] == 'T') {
-//	if ((int)json[index] == ltr_t || (int)json[index] == ltr_T) {
-//		std::string t{"rue"};
-//		
-//		for (char &c : t) {
-//			index++;
-//			
-//			if (c != json[index] && (c-32) != json[index]) {
-//				std::string err = "Invalid bool value found at index: " + std::to_string(index);
-//				set_error(err);
-//				throw jsonP_exception{err.c_str()};
-//			}
-//		}
-//		
-//		value = true;
-//	} else {
-//		std::string t{"alse"};
-//		
-//		for (char &c : t) {
-//			index++;
-//			
-//			if (c != json[index] && (c-32) != json[index]) {
-//				std::string err = "Invalid bool value found at index: " + std::to_string(index);
-//				set_error(err);
-//				throw jsonP_exception{err.c_str()};
-//			}
-//		}
-//		
-//		value = false;
-//	}
-	
 	if (json[index] == 't') {
 		if (json[++index] == 'r' && json[++index] == 'u' && json[++index] == 'e') {
-			value = true;
-			
-//((obj_member*)&stack_buf[stack_i])->value = &boolean_true;
-
-//memcpy(&stack_buf[stack_i + obj_member_val_offx], &boolean_true, sizeof(byte*));
-//memcpy(&json[value_start], &boolean_true, sizeof(byte*));
-//json[value_start] = boolean_true;			
-json[value_start] ='1';
-
+			if (use_json)
+				json[value_start] ='1';
+			else
+				data[data_i++] = '1';
 		} else {
 			std::string err = "Invalid bool value found at index: " + std::to_string(index);
 			set_error(err);
@@ -334,15 +340,10 @@ json[value_start] ='1';
 		}
 	} else {
 		if (json[++index] == 'a' && json[++index] == 'l' && json[++index] == 's' && json[++index] == 'e') {
-			value = false;
-			
-//((obj_member*)&stack_buf[stack_i])->value = &boolean_false;
-
-//memcpy(&stack_buf[stack_i + obj_member_val_offx], &boolean_false, sizeof(byte*));
-//memcpy(&json[value_start], &boolean_false, sizeof(byte*));
-//json[value_start] = boolean_false;
-json[value_start] ='0';
-
+			if (use_json)
+				json[value_start] ='0';
+			else
+				data[data_i++] = '0';
 		} else {
 			std::string err = "Invalid bool value found at index: " + std::to_string(index);
 			set_error(err);
@@ -350,8 +351,11 @@ json[value_start] ='0';
 		}
 	}
 
-json[value_start+1] = '\0';
-	
+	if (use_json)
+		json[value_start+1] = '\0';
+	else
+		data[data_i++] = '\0';
+		
 	index++;
 }
 
@@ -371,8 +375,6 @@ int s = index-1;
 
 //	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
 	while (c != space && c != tab && c != new_line && c != car_return && c != comma_int && c != rt_brac && c != rt_curly) {
-//		number += json[index];
-	
 //		if (c >= '0' && c <= '9') {
 		if (c >= zero && c <= nine) {
 //			zer0 = true;
@@ -403,14 +405,22 @@ int s = index-1;
 		c = (int)json[++index];
 	}
 	
-while (s < index-1) {
-//	json[s] = json[s+1];
-	json[value_start++] = json[s+1];
-	s++;
-}
-//json[s] = '\0';
-json[value_start] = '\0';
-	
+	if (use_json) {
+		while (s < index-1) {
+			json[value_start++] = json[s+1];
+			s++;
+		}
+		
+		json[value_start] = '\0';
+	} else {
+		while (s < index-1) {
+			data[data_i++] = json[s+1];
+			s++;
+		}
+		
+		data[data_i++] = '\0';
+	}
+
 	if (is_long)
 		return numeric_long;
 	else
@@ -419,144 +429,56 @@ json[value_start] = '\0';
 }
 
 
-void jsonP_parser::parse_value(element *& value)
+void jsonP_parser::parse_value()
 {
 	//figure out what type of data type this is
 //	if (json[index] == '{') {
 	if ((int)json[index] == lft_curly) {
 		//object
-*((element_type*)&stack_buf[stack_i]) = object;
-stack_i += obj_member_sz;
-		element_object *obj;
-		parse_object(obj);
-		value = obj;
+		*((element_type*)&stack_buf[stack_i]) = object;
+		stack_i += obj_member_sz;
+		parse_object();
 //	} else if (json[index] == '[') {
 	} else if ((int)json[index] == lft_brac) {
 		//array
-*((element_type*)&stack_buf[stack_i]) = array_ptr;
-stack_i += arry_member_sz;
-		element_array *arr;
-		parse_array(arr);
-		value = arr;
+		*((element_type*)&stack_buf[stack_i]) = array_ptr;
+		stack_i += arry_member_sz;
+		parse_array();
 //	} else if (json[index] == '"') {
 	} else if ((int)json[index] == quote_int) {
 		//string
-		std::string str_val;
-		
-
-*((element_type*)&stack_buf[stack_i]) = string;
-//*((char**)&stack_buf[stack_i + obj_member_val_offx]) = (char*)(&json[index + 1]);
-
-
-//(char*)(stack_buf[stack_i + obj_member_val_offx]) = (char*)(&json[index + 1]);
-//char *cptr = (char*)(stack_buf[stack_i + obj_member_val_offx]);
-//cptr = (char*)(&json[index + 1]);
-//memcpy(&stack_buf[stack_i + obj_member_val_offx], (&json + index + 1), sizeof(char*));
-
-//std::cout <<  "josn address: " << (&json + index + 1) << ", buf address: " << (&stack_buf + stack_i + obj_member_val_offx);
-//char *t = (char*)(&json[index + 1]);
-//char *t = *((char**)&stack_buf[stack_i + obj_member_val_offx]);
-		
-		parse_key(str_val);
-
-
-//std::cout << ", k1: " << str_val << ", k2: " << t << std::endl;
-		
-//		value = new element_string{str_val};
-		value = create_string_element(str_val);
+		*((element_type*)&stack_buf[stack_i]) = string;
+		parse_key();
 //	} else if (json[index] == 't' || json[index] == 'T' || json[index] == 'f' || json[index] == 'F') {
 	} else if ((int)json[index] == ltr_t || (int)json[index] == ltr_T || (int)json[index] == ltr_f || 
 			(int)json[index] == ltr_F) {
 		//bool
-		bool bool_val;
-		parse_bool(bool_val);
-//		value = new element_boolean{bool_val};
-		value = create_boolean_element(bool_val);
-		
-//((obj_member*)&stack_buf[stack_i])->type = boolean;
-*((element_type*)&stack_buf[stack_i]) = boolean;
+		parse_bool();
+		*((element_type*)&stack_buf[stack_i]) = boolean;
 
-		
 //	} else if ((json[index] >= '0' && json[index] <= '9') || json[index] == '-' || json[index] == '+') {
 	} else if (((int)json[index] >= zero && (int)json[index] <= nine) || (int)json[index] == minus || (int)json[index] == plus) {
 //		std::string number;
-int s = index;
+		int s = index;
 		
 //		switch (parse_numeric(number))//start, end)) 
 		switch (parse_numeric())
 		{
 			case numeric_int :
-//std::cout << "parse numeric returned int\n";
-//				value = new element_numeric{atoi(json.substr(start, end).c_str())};
-//				value = new element_numeric{atoi(number.c_str())};
-//				value = create_int_element(number);
-//value = new element_numeric{number, numeric_int};
-{
-//char *c = (char*) malloc(index-s+1);
-//int i=0;
-//while (s < index)
-//	c[i++] = json[s++];
-//c[i] = '\0';
-//value = new element_numeric{c, numeric_int};
-value = new element_numeric{&json[s-1], numeric_int};
-
-
-//((obj_member*)&stack_buf[stack_i])->type = numeric_int;
-//((obj_member*)&stack_buf[stack_i])->value = &json[s-1];
-
-*((element_type*)&stack_buf[stack_i]) = numeric_int;
-//*((char**)&stack_buf[stack_i + obj_member_val_offx]) = (char*)(&json[s-1]);
-
+			{
+				*((element_type*)&stack_buf[stack_i]) = numeric_int;
 				break;
-}
+			}
 			case numeric_long :
-//std::cout << "parse numeric returned long\n";
-//				value = new element_numeric{atol(json.substr(start, end).c_str())};
-//				value = new element_numeric{atol(number.c_str())};
-//				value = create_long_element(number);
-//value = new element_numeric{number, numeric_long};
-{
-//char *c = (char*) malloc(index-s+1);
-//int i=0;
-//while (s < index)
-//	c[i++] = json[s++];
-//c[i] = '\0';
-//value = new element_numeric{c, numeric_long};
-value = new element_numeric{&json[s-1], numeric_long};
-
-//((obj_member*)&stack_buf[stack_i])->type = numeric_long;
-//((obj_member*)&stack_buf[stack_i])->value = &json[s-1];
-
-*((element_type*)&stack_buf[stack_i]) = numeric_long;
-//*((char**)&stack_buf[stack_i + obj_member_val_offx]) = (char*)(&json[s-1]);
-
+			{
+				*((element_type*)&stack_buf[stack_i]) = numeric_long;
 				break;
-}
+			}
 			case numeric_double :
-
-//std::cout << "parse numeric returned double\n";
-//				value = new element_numeric{atof(json.substr(start, end).c_str())};
-//				value = new element_numeric{atof(number.c_str())};
-//				value = create_float_element(number);
-//value = new element_numeric{number, numeric_double};
-{
-//char *c = (char*) malloc(index-s+1);
-//int i=0;
-//while (s < index)
-//	c[i++] = json[s++];
-//c[i] = '\0';
-//value = new element_numeric{c, numeric_double};
-value = new element_numeric{&json[s-1], numeric_double};
-
-//((obj_member*)&stack_buf[stack_i])->type = numeric_double;
-//((obj_member*)&stack_buf[stack_i])->value = &json[s-1];
-
-*((element_type*)&stack_buf[stack_i]) = numeric_double;
-//*((char**)&stack_buf[stack_i + obj_member_val_offx]) = (char*)(&json[s-1]);
-
-
+			{
+				*((element_type*)&stack_buf[stack_i]) = numeric_double;
 				break;
-}
+			}
 			default :
 				std::string err = "parse error, invalid return type from parse_numeric at index: " + std::to_string(index);
 				set_error(err);
@@ -566,17 +488,12 @@ value = new element_numeric{&json[s-1], numeric_double};
 //	} else if (json[index] == 'n') { 
 	} else if ((int)json[index] == ltr_n) { 
 		if (json[++index] == 'u' && json[++index] == 'l' && json[++index] == 'l') {
-//			value = new element_null{};
-			value = create_null_element();
-		
-//((obj_member*)&stack_buf[stack_i])->type = null;
-*((element_type*)&stack_buf[stack_i]) = null;
-json[value_start] = 'n';
-json[++value_start] = 'u';
-json[++value_start] = 'l';
-json[++value_start] = 'l';
-json[++value_start] = '\0';		
-		
+			*((element_type*)&stack_buf[stack_i]) = null;
+//			json[value_start] = 'n';
+//			json[++value_start] = 'u';
+//			json[++value_start] = 'l';
+//			json[++value_start] = 'l';
+//			json[++value_start] = '\0';		
 			index++;
 		} else {
 			std::string err = "parse error, trying to get null value at index: " + std::to_string(index);
@@ -584,7 +501,6 @@ json[++value_start] = '\0';
 			throw jsonP_exception{err.c_str()};
 		}
 	} else {
-std::cout << "ERRROR: " << json[index] << "-" << (int)json[index] << std::endl;
 		std::string err = "parse error, trying to get value at index: " + std::to_string(index);
 		set_error(err);
 		throw jsonP_exception{err.c_str()};
@@ -592,112 +508,71 @@ std::cout << "ERRROR: " << json[index] << "-" << (int)json[index] << std::endl;
 }
 
 
-unsigned int jsonP_parser::parse_array(element_array *& arr)
+//unsigned int jsonP_parser::parse_array(element_array *& arr)
+unsigned int jsonP_parser::parse_array()
 {
-//std::cout << "parse_array start, index: " << stack_i << std::endl;
+	// create local index for this obj record and advace global index
+	unsigned int loc_stack_i = stack_i; // - obj_member_sz;
+	unsigned int num_elements = 0;
+	unsigned int to_return;	//most likely will need
+	//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
+	*((element_type*)&stack_buf[loc_stack_i]) = array;
+	*(unsigned int*)&stack_buf[loc_stack_i + arry_member_val_offx] = *(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx];
 
-// create local index for this obj record and advace global index
-unsigned int loc_stack_i = stack_i; // - obj_member_sz;
-unsigned int num_elements = 0;
-//byte *return_ptr;
-unsigned int to_return;	//most likely will need
-//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
-*((element_type*)&stack_buf[loc_stack_i]) = array;
-*(unsigned int*)&stack_buf[loc_stack_i + arry_member_val_offx] = *(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx];
-
-stack_i += (arry_member_sz + arry_root_sz);
-
-	//figure out array type based off of first element
-//	eat_whitespace(++index);
-
-value_start = index;
-*(unsigned int*)&stack_buf[stack_i + arry_member_val_offx] = index;
-
+	stack_i += (arry_member_sz + arry_root_sz);
+	value_start = index;
+	
+	*(unsigned int*)&stack_buf[stack_i + arry_member_val_offx] = (use_json) ? index : data_i;
+		
 	++index;
 	eat_whitespace();
 	
 	//make sure array is empty
 //	if (json[index] == ']') {
 	if ((int)json[index] == rt_brac) {
-		arr = create_element_array(string);
-		
-*((unsigned int*)&stack_buf[loc_stack_i + arry_member_sz]) = num_elements;
+		*((unsigned int*)&stack_buf[loc_stack_i + arry_member_sz]) = num_elements;
+
 //std::cout << "Arry number keys:" << *((unsigned int*)&stack_buf[loc_stack_i + obj_member_sz]) << ", loc_stack_i: " << loc_stack_i <<
 //	", for key index: " << *((int*)&stack_buf[loc_stack_i + obj_member_sz]) << std::endl; 
 
-memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
+*((element_type*)&stack_buf[stack_i]) = extended;
+*((unsigned int*)&stack_buf[stack_i + arry_member_val_offx]) = 0; 
+stack_i += arry_member_sz;
 
+		if (increase_data_buffer(stack_i - loc_stack_i + arry_member_sz)) {
+std::cout << "increasing the data buffer" << std::endl;
+			data_sz = (unsigned long)data_sz * 1.2 + stack_i - loc_stack_i;
+			data = (byte*) realloc(data, data_sz);
+		}
 
+		memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
 
-*(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx] = data_i + arry_member_val_offx;
-*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = array_ptr;
+		*(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx] = data_i + arry_member_val_offx;
+		*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = array_ptr;
 
-to_return = data_i;
-data_i += (stack_i - loc_stack_i);
-stack_i = loc_stack_i - arry_member_sz;
+		to_return = data_i;
+		data_i += (stack_i - loc_stack_i);
+		stack_i = loc_stack_i - arry_member_sz;
 		
 		index++;
 		return to_return;
 	}
 	
-	element *val = nullptr;
+	parse_value();
+	num_elements++;
+	stack_i += arry_member_sz;
 
-
-	parse_value(val);
-	
-	if (val) {
-		switch (val->get_type())
-		{
-			case string :
-	//			arr = new element_array{string};
-				arr = create_element_array(string);
-				break;
-			case boolean :
-	//			arr = new element_array{boolean};
-				arr = create_element_array(boolean);
-				break;	
-	//		case numeric :
-	//			arr = new element_array{numeric};
-	//			break;
-			case numeric_int :
-	//			arr = new element_array{numeric_int};
-				arr = create_element_array(numeric_int);
-				break;
-			case numeric_long :
-	//			arr = new element_array{numeric_long};
-				arr = create_element_array(numeric_long);
-				break;
-			case numeric_double :
-	//			arr = new element_array{numeric_double};
-				arr = create_element_array(numeric_double);
-				break;
-			case object :
-	//			arr = new element_array{object};
-				arr = create_element_array(object);
-				break;
-			case array :
-	//			arr = new element_array{array};
-				arr = create_element_array(array);
-			case null :
-	//			arr = new element_array{null};
-				arr = create_element_array(null);
-		}
-		
-	//	arr->add_element(val);
-		add_array_element(arr, val);
-
-num_elements++;
-stack_i += arry_member_sz;
-
-	} else {
-//		arr = new element_array{string};	//dont care about schemas so just make it string since it doesn't matter
-		arr = create_element_array(string);
-	}
-	
 	bool look_for_value{false};
-	//keep adding elements, if different types of elements r present then the first type, they will fail
+	
 	while (true) {
-//		eat_whitespace(index);
+
+		if (increase_stack_buffer()) {
+//std::cout << "increasing the size of the stack buffer" << std::endl;
+			stack_buf_sz = (unsigned int) stack_buf_sz * 1.2;
+			stack_buf = (byte*) realloc(stack_buf, stack_buf_sz);
+			stats.stack_buf_increases++;
+		}
+
 		eat_whitespace();
 		
 //		if (json[index] == ']') {
@@ -719,90 +594,66 @@ stack_i += arry_member_sz;
 				set_error(err);
 				throw jsonP_exception{err.c_str()};
 			} else {
-
-value_start = index;
-*(unsigned int*)&stack_buf[stack_i + arry_member_val_offx] = index;
+				value_start = index;
+				*(unsigned int*)&stack_buf[stack_i + arry_member_val_offx] = (use_json) ? index : data_i;
 
 				index++;
 				look_for_value = true;
 			}
 		} else {
 			look_for_value = false;
-
-
-			parse_value(val);
-
-			if (val) {
-
-num_elements++;
-stack_i += arry_member_sz;
-
-				add_array_element(arr, val);
-			}
+			parse_value();
+			num_elements++;
+			stack_i += arry_member_sz;
 		}
 	}
 	
-*((unsigned int*)&stack_buf[loc_stack_i + arry_member_sz]) = num_elements;
-//std::cout << "Arry number keys:" << *((unsigned int*)&stack_buf[loc_stack_i + obj_member_sz]) << ", loc_stack_i: " << loc_stack_i <<
-//	", for key index: " << *((int*)&stack_buf[loc_stack_i + obj_member_sz]) << std::endl; 
+	*((unsigned int*)&stack_buf[loc_stack_i + arry_member_sz]) = num_elements;
 	
-//std::cout << "\n\nChecking json 1-";
-//for (int k=0;k<38;k++)
-//	std::cout << (int)json[k] << "-";
-//std::cout << "\n\n";
+*((element_type*)&stack_buf[stack_i]) = extended;
+*((unsigned int*)&stack_buf[stack_i + arry_member_val_offx]) = 0; 
+stack_i += arry_member_sz;
 
+	if (increase_data_buffer(stack_i - loc_stack_i + arry_member_sz)) { 
+//std::cout << "increasing the data buffer" << std::endl;
+		data_sz = (unsigned long) data_sz * 1.2 + stack_i - loc_stack_i;
+		data = (byte*) realloc(data, data_sz);
+		stats.data_increases++;
+	}
 
-memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
-//for (size_t i=0; i<stack_i-loc_stack_i; i++)
-//	data[data_i+i] = stack_buf[loc_stack_i+i];
+	memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
 
-//std::cout << "\n\nChecking json 2-";
-//for (int k=0;k<38;k++)
-//	std::cout << (int)json[k] << "-";
-//std::cout << "\n\n";
+	*(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx] = data_i + arry_member_val_offx;
+	*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = array_ptr;
 
-
-*(unsigned int*)&stack_buf[loc_stack_i - arry_member_sz + arry_member_val_offx] = data_i + arry_member_val_offx;
-*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = array_ptr;
-
-to_return = data_i;
-data_i += (stack_i - loc_stack_i);
-stack_i = loc_stack_i - arry_member_sz;
-return to_return;
+	to_return = data_i;
+	data_i += (stack_i - loc_stack_i);
+	stack_i = loc_stack_i - arry_member_sz;
 	
+	return to_return;
 }
 
 
-unsigned int jsonP_parser::parse_object(element_object *& obj)
+//unsigned int jsonP_parser::parse_object(element_object *& obj)
+unsigned int jsonP_parser::parse_object()
 {
 //std::cout << "parse_object start, index: " << stack_i << std::endl;
 
-// create local index for this obj record and advace global index
-unsigned int loc_stack_i = stack_i; // - obj_member_sz;
-unsigned int num_keys = 0;
-//byte *return_ptr;
-unsigned int to_return;
-//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
-*((element_type*)&stack_buf[loc_stack_i]) = object;
-*(unsigned int*)&stack_buf[loc_stack_i + obj_member_key_offx] = *(unsigned int*)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx];
+	// create local index for this obj record and advace global index
+	unsigned int loc_stack_i = stack_i; // - obj_member_sz;
+	unsigned int num_keys = 0;
+	unsigned int to_return;
+	//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
+	*((element_type*)&stack_buf[loc_stack_i]) = object;
+	*(unsigned int*)&stack_buf[loc_stack_i + obj_member_key_offx] = *(unsigned int*)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx];
 
-//std::cout << "key index: " << *(unsigned int*)&stack_buf[loc_stack_i + obj_member_key_offx] << ", parse object key: " << &data[*(unsigned int*)&stack_buf[loc_stack_i + obj_member_key_offx]] << std::endl;
+	stack_i += (obj_root_sz + obj_member_sz);
 
-
-//stack_i += obj_root_sz;
-stack_i += (obj_root_sz + obj_member_sz);
-
-	
-//	obj = new element_object{};
-//if (obj == nullptr)
-	obj = create_element_object();
 	bool keep_going{true};
 	bool local_look_for_key{true};
-//	look_for_key = true;
 	
 //	if (json[index] != '{') {
 	if ((int)json[index] != lft_curly) {
-		delete obj;
 		std::string err = "parse error, expected '{' at index: " + std::to_string(index);
 		set_error(err);
 		throw jsonP_exception{err.c_str()};
@@ -812,30 +663,55 @@ stack_i += (obj_root_sz + obj_member_sz);
 	
 	try {
 		while (keep_going) {
+			if (increase_stack_buffer()) {
+//std::cout << "increasing the size of the stack buffer" << std::endl;
+				stack_buf_sz += 512;
+				stack_buf = (byte*) realloc(stack_buf, stack_buf_sz);
+				stats.stack_buf_increases++;
+			}
+	
 			eat_whitespace();
-//			std::cout << "CHECKING : " << json[index] << std::endl;
+//std::cout << "CHECKING : " << json[index] << std::endl;
 
 			//check for end object
 //			if (json[index] == '}') {
 			if ((int)json[index] == rt_curly) {
 				index++;
+				*((unsigned int*)&stack_buf[loc_stack_i + obj_member_sz]) = num_keys;
+				unsigned int lft;
+				unsigned int rt;
+				byte * text = (use_json) ? json : data;
 
-*((unsigned int*)&stack_buf[loc_stack_i + obj_member_sz]) = num_keys;
-//std::cout << "num keyss --1:" << *((unsigned int*)&stack_buf[loc_stack_i + obj_member_sz]) << ", loc_stack_i: " << loc_stack_i <<
-//	", for key index: " << *((int*)&stack_buf[loc_stack_i + obj_member_sz]) << std::endl; 
+				std::sort((obj_member*)&stack_buf[loc_stack_i+obj_member_sz+obj_root_sz], 
+					(obj_member*)&stack_buf[loc_stack_i+obj_member_sz+obj_root_sz+(obj_member_sz*num_keys)],
+					[&](obj_member l, obj_member r) { 
+		
+					lft = get_key_location(l.b, obj_member_key_offx);
+					rt = get_key_location(r.b, obj_member_key_offx);
 
-//std::cout << "\n\nChecking json 2-";
-//for (int k=0;k<28;k++)
-//	std::cout << (int)json[k] << "-";
-//std::cout << "\n\n";
+					if (get_element_type(l.b, 0) == object_ptr || get_element_type(l.b, 0) == array_ptr) {
+						lft = get_key_location(data, lft);
+					}
+						
+					if (get_element_type(r.b, 0) == object_ptr || get_element_type(r.b, 0) == array_ptr) {
+						rt = get_key_location(data, rt);
+					}
+					
+					return std::strcmp(text+lft, text+rt) < 0;
+				});
+	
+*((element_type*)&stack_buf[loc_stack_i+obj_member_sz+obj_root_sz+(obj_member_sz*num_keys)]) = extended;
+*((unsigned int*)&stack_buf[loc_stack_i+obj_member_sz+obj_root_sz+(obj_member_sz*num_keys)+obj_member_key_offx]) = 0; 
+stack_i += obj_member_sz;
 
+				if (increase_data_buffer(stack_i - loc_stack_i + obj_member_sz)) {
+				//std::cout << "increasing the data buffer" << std::endl;
+					data_sz = (unsigned long) data_sz * 1.2 + stack_i - loc_stack_i;
+					data = (byte*) realloc(data, data_sz);
+					stats.data_increases++;
+				}
 
-memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
-
-//std::cout << "\n\nChecking json 3-";
-//for (int k=0;k<28;k++)
-//	std::cout << (int)json[k] << "-";
-//std::cout << "\n\n";
+				memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
 
 //std::cout << "copied to data[" << data_i << "], from stack_buf[" << loc_stack_i << "], " << (stack_i-loc_stack_i) << " bytes\n";
 //
@@ -845,44 +721,44 @@ memcpy(&data[data_i], &stack_buf[loc_stack_i], stack_i - loc_stack_i);
 //		", 1st key type data[" << data_i+9 << "] = " << *(element_type*)&data[data_i+9] <<
 //		", 1st key location data[" << data_i+10 << "] = " << *(unsigned int*)&data[data_i+10] <<
 //		std::endl;
-		
 
+				*(unsigned int*)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx] = data_i + obj_member_key_offx;
+				*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = object_ptr;
 
-*(unsigned int*)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx] = data_i + obj_member_key_offx;
-*(element_type*)&stack_buf[loc_stack_i - obj_member_sz] = object_ptr;
+//std::cout << "set obj pointer to: " << *(unsigned int*)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx] <<
+//", for pointer type: " << *(element_type*)&stack_buf[loc_stack_i - obj_member_sz] << std::endl;
 
-//return_ptr = &data[data_i];
-to_return = data_i;
-
-
-data_i += (stack_i - loc_stack_i);
-stack_i = loc_stack_i - obj_member_sz;
+				to_return = data_i;
+				data_i += (stack_i - loc_stack_i);
+				stack_i = loc_stack_i - obj_member_sz;
 
 				break;
 //			} else if (json[index] == '"') {
 			} else if ((int)json[index] == quote_int) {
 				//check for key
-				std::string key;
 				look_for_key = true;
 				
-*(unsigned int*)&stack_buf[stack_i + obj_member_key_offx] = index + 1;
-num_keys ++;
+				if (use_json)
+					*(unsigned int*)&stack_buf[stack_i + obj_member_key_offx] = index + 1;
+				else
+					*(unsigned int*)&stack_buf[stack_i + obj_member_key_offx] = data_i;
+					
+				num_keys ++;
 
-				parse_key(key);
+				parse_key();
 //std::cout << "Key: " << *((char**)&stack_buf[stack_i + obj_member_key_offx]) << ", index =" << index << std::endl;
 
 				look_for_key = false;
 				local_look_for_key = false;
-value_start = index;
+				value_start = index;
+
+/************* TO DO, figure out a check for below *********************/				
+//				if (key.length() < 1) {
+//					std::string err = "parse error, blank key found at index: " + std::to_string(index);
+//					set_error(err);
+//					throw jsonP_exception{err.c_str()};
+//				}
 				
-				if (key.length() < 1) {
-					std::string err = "parse error, blank key found at index: " + std::to_string(index);
-					set_error(err);
-					throw jsonP_exception{err.c_str()};
-				}
-				
-				element *value = nullptr;
-//				eat_whitespace(index);
 				eat_whitespace();
 
 //				if (json[index] != ':') {
@@ -892,16 +768,10 @@ value_start = index;
 					throw jsonP_exception{err.c_str()};
 				}
 					
-//				eat_whitespace(++index);
 				index++;
 				eat_whitespace();
-//std::cout << "stack_i b4 parse_value: " << stack_i << std::endl;
-				parse_value(value);
-//std::cout << "stack_i after parse_value: " << stack_i << std::endl;
-//				obj->add_element(key, value);
-				add_object_element(obj, value, key);
-
-stack_i += obj_member_sz;
+				parse_value();
+				stack_i += obj_member_sz;
 
 				continue;
 //			} else if (json[index] == ',') {
@@ -923,7 +793,6 @@ stack_i += obj_member_sz;
 			
 		}
 	} catch (jsonP_exception &e) {
-		delete obj;
 		std::cout << e.what() << std::endl;
 		throw e;
 	}
@@ -945,3 +814,12 @@ void jsonP_parser::set_error(std::string error)
 	error_index = index;
 	error_string = error;
 }
+
+
+
+//TO REMOVE LATER
+//void jsonP_parser::parse_key(std::string &){}
+//void jsonP_parser::parse_bool(bool &){}
+//unsigned int jsonP_parser::parse_array(element_array *&){}
+//unsigned int jsonP_parser::parse_object(element_object *&){}
+//void jsonP_parser::parse_value(element *&){}
