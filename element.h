@@ -3,226 +3,241 @@
 
 #include "jsonP_exception.h"
 
-//#include <map>
-#include <vector>
-#include <string>
 #include <iostream>
 
 
-#define get_element_type(buf,indx)		*(element_type*)&(buf)[ (indx) ]
-#define get_key_location(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
-#define get_key_count(buf,indx)		*(unsigned int*)&(buf)[ (indx) ]
-#define increase_stack_buffer()			((stack_buf_sz) - (stack_i)) < 50
-#define increase_data_buffer(needed)	(((data_sz) - (data_i)) < (needed))
+#define get_element_type(buf,indx)			*(element_type*)&(buf)[ (indx) ]
+#define set_element_type(buf,indx,typ)		*(element_type*)&(buf)[ (indx) ] = (typ)
+#define set_key_offx_value(buf,indx,val)	*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ] = (val)
+#define set_uint_a_indx(buf,indx,val)		*(unsigned int*)&(buf)[ (indx) ] = (val)
+#define get_key_location(buf,indx)			*(unsigned int*)&(buf)[ (indx) + obj_member_key_offx ]
+#define get_val_location(buf,indx)			*(unsigned int*)&(buf)[ (indx) + obj_member_key_offx ]
+#define get_uint_a_indx(buf,indx)			*(unsigned int*)&(buf)[ (indx) ]
+#define get_key_count(buf,indx)			*(unsigned int*)&(buf)[ (indx) ]
+#define get_ext_start(buf,indx)			*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ]
+#define get_ext_first(buf,indx,k_cnt)		*(unsigned int*)&(buf)[ (indx) + (obj_member_sz) + (obj_root_sz) + ((k_cnt) * (obj_member_sz)) + (obj_member_key_offx) ]
+#define get_ext_next(buf,indx)				*(unsigned int*)&(buf)[ (indx) + (obj_member_ext_next_offx) ]
+#define get_container_loc(buf, indx)		*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ]
+
+//#define increase_stack_buffer()			((stack_buf_sz) - (stack_i)) < 50
+//#define increase_data_buffer(needed)		(((data_sz) - (data_i)) < (needed))
+#define increase_stack_buffer()			(stack_buf_sz) <= ((stack_i) + 50)
+#define increase_data_buffer(needed)		((data_sz) <= ((data_i) + (needed))) 
 
 // used for parser options
 #define PRESERVE_JSON				1
 #define SHRINK_BUFS				PRESERVE_JSON << 1
+#define DONT_SORT_KEYS				PRESERVE_JSON << 2
+#define WEAK_REF					PRESERVE_JSON << 3
 
 
 typedef char byte;
 
 enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, 
-								array_ptr=6, array=7, boolean=8, null=9, extended=10};
+								array_ptr=6, array=7, boolean=8, null=9, extended=10, empty=11, bool_true=12, 
+								bool_false=13, search=14, invalid=15};
 
+static size_t element_type_sz = 1;
 static size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
+static size_t obj_member_ext_sz = obj_member_sz + sizeof(unsigned int);
 static size_t obj_root_sz = sizeof(unsigned int);
 static size_t arry_member_sz = obj_member_sz;
+static size_t arry_member_ext_sz = arry_member_sz + sizeof(unsigned int);
 static size_t arry_root_sz = obj_root_sz;
 static size_t obj_member_key_offx = sizeof(element_type);
+static size_t obj_member_ext_next_offx = obj_member_sz;
 static size_t arry_member_val_offx = sizeof(element_type);
+static size_t arry_member_ext_next_offx = arry_member_sz;
 
 
-//const static std::string quote{"\""};
-//const static std::string quote_colon{"\":"};
-//const static std::string comma{","};
+// used to partition each element used during sorting
+struct obj_member
+{
+	//byte b[obj_member_sz];      // <-- hardcode for now, see if I can change this with define if else ???
+	byte b[5];
+};
+
+
+static void sort_keys(void *start, void *end, byte *meta, byte *data)
+{
+	unsigned int lft;
+	unsigned int rt;
+//	byte * text = (use_json) ? json : data;
+
+	std::sort((obj_member*)start, (obj_member*)end, [&](obj_member l, obj_member r) { 
+//		std::cout << "l type: " << *(element_type*)&l.b[0] << ", R type: " << *(element_type*)&r.b[0] << std::endl;
+			
+//		if (*(element_type*)&l.b[0] == empty)
+		if (get_element_type(l.b, 0) == empty)
+			return false;
+				
+//		if (*(element_type*)&r.b[0] == empty)
+		if (get_element_type(r.b, 0) == empty)
+			return true;
+			
+//		lft = get_key_location(l.b, obj_member_key_offx);
+//		rt = get_key_location(r.b, obj_member_key_offx);
+		lft = get_key_location(l.b, 0);
+		rt = get_key_location(r.b, 0);
+
+		if (get_element_type(l.b, 0) == object_ptr || get_element_type(l.b, 0) == array_ptr) {
+			lft = get_uint_a_indx(meta, lft);
+		}
+						
+		if (get_element_type(r.b, 0) == object_ptr || get_element_type(r.b, 0) == array_ptr) {
+			rt = get_uint_a_indx(meta, rt);
+		}
+
+//		std::cout << "strcmp(" << data+lft << ", " << data+rt << ") = " << std::strcmp(data+lft, data+rt) << std::endl;
+
+		return std::strcmp(data+lft, data+rt) < 0;
+	});
+}
 
 
 
-//
-//class element_object;
-//
-//class element
-//{
-//private:
-//	element_type type;
-//	int ref_count;
-//	
-//	const char* get_error() {
-//		switch (type)
-//		{
-//			case string:
-//			return "This entity is a string";
-//			break;
-//			case boolean:
-//			return "This entity is a bool";
-//			break;
-//			case numeric_int:
-//			return "This entity is a numeric";
-//			break;
-//			case numeric_long:
-//			return "This entity is a numeric long";
-//			break;
-//			case numeric_double:
-//			return "This entity is a numeric double";
-//			break;
-//			case array:
-//			case array_ptr:
-//			return "This entity is an array";
-//			break;
-//			case object:
-//			case object_ptr:
-//			return "This entity is an object";
-//			break;
-//			case null:
-//			return "This entity contains a null value";
-//			break;
-//		}
-//		
-//		return "This entity is unknown";
-//	}
-//	
-//public:
-//	element() : ref_count{0} {}
-//	element(element_type t) : type{t}, ref_count{0} {};
-////int ref_count;	
-//	virtual ~element() { /*std::cout << "element: " << type << " destructor" << std::endl;*/ }
-//	
-//	element_type get_type() { return type; }
-//	
-//	std::string get_type_string() 
-//	{
-//		switch (type)
-//		{
-//			case object:
-//				return "object"; break;
-//			case object_ptr:
-//				return "object_ptr"; break;
-//			case array:
-//				return "array"; break;
-//			case array_ptr:
-//				return "array_ptr"; break;
-//			case string:
-//				return "string"; break;
-//			case boolean:
-//				return "boolean"; break;
-//			case numeric_int:
-//				return "numeric int"; break;
-//			case numeric_double:
-//				return "numeric double"; break;
-//			case numeric_long:
-//				return "numeric long"; break;
-//			case null:
-//				return "null"; break;
-//			default :
-//			{
-//				std::cout << "Error: unknown elementtype of: %d, returning String" << std::endl;
-//				return "string";
-//			}	
-//		}
-//	}
-//	
-//	//methods used by the individual elements, if not overridden then throws
-//	virtual std::string & get_string_value() { throw jsonP_exception{get_error()}; }
-//	virtual bool get_boolean_value() { throw jsonP_exception{get_error()}; }
-//	virtual int get_int_value() { throw jsonP_exception{get_error()}; }
-//	virtual long get_long_value() { throw jsonP_exception{get_error()}; }
-//	virtual double get_double_value() { throw jsonP_exception{get_error()}; }
-//	virtual element_object * get_object_value() { throw jsonP_exception{get_error()}; }
-//	virtual std::vector<element *> & get_array_value() { throw jsonP_exception{get_error()}; }
-//	
-//	//methods only implmemented by object, other elements will throw 
-//	virtual std::string & get_as_string(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual bool get_as_boolean(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual int get_as_numeric_int(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual long get_as_numeric_long(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual double get_as_numeric_double(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual std::vector<element *> & get_as_array(std::string key) { throw jsonP_exception{get_error()}; }
-//	virtual element_object * get_as_object(std::string key) { throw jsonP_exception{get_error()}; }
-////	virtual std::string & get_as_string(char *key) { throw jsonP_exception{get_error()}; }
-////	virtual bool get_as_boolean(char *key) { throw jsonP_exception{get_error()}; }
-////	virtual int get_as_numeric_int(std::string key) { throw jsonP_exception{get_error()}; }
-////	virtual long get_as_numeric_long(std::string key) { throw jsonP_exception{get_error()}; }
-////	virtual double get_as_numeric_double(std::string key) { throw jsonP_exception{get_error()}; }
-////	virtual std::vector<element *> & get_as_array(std::string key) { throw jsonP_exception{get_error()}; }
-////	virtual element_object * get_as_object(std::string key) { throw jsonP_exception{get_error()}; }
-//	
-//	void incr_count() { ref_count++; }
-//	int get_count() { return --ref_count; }
-//	
-//	virtual void stringify(std::string &) {};
-//	
-//	virtual void stringify_pretty(std::string & raw, std::string & pretty)
-//	{
-//		bool indent{false};
-//		bool parsing_value{false};
-//		size_t indent_l{0};
-//		
-//		for (size_t i{0}; i<raw.length(); i++) {
-//			
-//			if (raw[i] == '"') {
-//				
-//				if (parsing_value) {
-//					int j{1}, k{2};
-//					
-//					while (raw[i-j] == '\\') {
-//						j++;
-//						k++;
-//					}
-//						
-//					if (k%2 == 0)
-//						parsing_value = false;
-//					else
-//						parsing_value = true;
-//				} else {
-//					parsing_value = true;
-//				}
-//				
-//				pretty += raw[i];
-//			} else if (!parsing_value && (raw[i] == '{' || raw[i] == '[')) {
-//				indent = true;
-//				indent_l += 2;
-//				pretty += raw[i];
-//				pretty += '\n';
-//				
-//				for (size_t t{0}; t<indent_l; t++)
-//					pretty += ' ';
-//				
-//			} else if (!parsing_value && (raw[i] == ']' || raw[i] == '}')) {
-//				indent_l -= 2;
-//				indent = (indent_l > 0) ? true : false;
-//				pretty += '\n';
-//				
-//				if (indent)
-//					for (size_t t{0}; t<indent_l; t++)
-//						pretty += ' ';
-//						
-//				pretty += raw[i];
-//			} else if (!parsing_value && (raw[i] == ',')) {
-//				pretty += raw[i];
-//				pretty += '\n';
-//				
-//				if (indent)
-//					for (size_t t{0}; t<indent_l; t++)
-//						pretty += ' ';
-//						
-//			} else if (!parsing_value && (raw[i] == ':')) {
-//				pretty += raw[i];
-//				pretty += ' ';
-//			} else {
-//				pretty += raw[i];
-//			}
-//		}
-//	}
-//
-//	
-//	virtual void stringify_pretty(std::string &s) {
-//		std::string raw;
-//		stringify(raw);
-//		stringify_pretty(raw, s);
-//	}
-//};
-//
-//
+static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+									bool ret_ptr, bool dont_sort_keys)
+{
+	unsigned int mid; // = (((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
+	unsigned int ext = get_ext_start(meta, end + obj_member_sz);
+	unsigned int key_cmp;
+	element_type type;
+	int result;
+	
+	if (!dont_sort_keys) {
+		//keys are sort binary search
+		while (start <= end) {
+			mid = (unsigned int)(((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
+//			std::cout << "Mid: " << mid << std::endl;
+			type = get_element_type(meta, mid);
+
+			if (type == empty) {
+				end = mid - sizeof(obj_member);
+				continue;
+			}
+				
+//			key_cmp = get_key_location(meta, mid + obj_member_key_offx);
+			key_cmp = get_key_location(meta, mid);
+//			std::cout << "--key_cmp: " << key_cmp << std::endl;
+
+			if ( type == object_ptr || type == array_ptr)
+//				key_cmp = get_key_location(meta, key_cmp);
+				key_cmp = get_uint_a_indx(meta, key_cmp);
+			
+//			std::cout << "key_cmp = " << key_cmp << ", char: " << data+key_cmp << std::endl;
+			result = std::strcmp(key, data+key_cmp);
+//			std::cout << "start: " << start << ", mid: " << mid << ", end: " << end << ", result: " << result << std::endl;
+
+			if (result == 0) {
+				//found
+				if ((type == object_ptr || type == array_ptr) && !ret_ptr) {
+//					return get_key_location(meta, mid + obj_member_key_offx) - element_type_sz;
+					return get_key_location(meta, mid) - element_type_sz;
+				} else {
+					return mid;
+				}
+			} else if (result < 0) {
+				end = mid - sizeof(obj_member);
+			} else {
+				start = mid + sizeof(obj_member);
+			}
+		}
+	} else {
+		//keys not sorted go through each
+		while (start <= end) {
+			type = get_element_type(meta, start);
+			key_cmp = get_key_location(meta, start);
+			
+			if ( type == object_ptr || type == array_ptr)
+				key_cmp = get_uint_a_indx(meta, key_cmp);
+				
+			result = std::strcmp(key, data+key_cmp);
+
+			if (result == 0) {
+				//found
+				if ((type == object_ptr || type == array_ptr) && !ret_ptr)
+					return get_key_location(meta, start) - element_type_sz;
+				else
+					return start;
+			} else {
+				start += obj_member_sz;
+			}
+		}
+	}
+	
+	while (ext > 0) {
+		type = get_element_type(meta, ext);
+//		key_cmp = get_key_location(meta, ext + obj_member_key_offx);
+		key_cmp = get_key_location(meta, ext);
+
+		if ( type == object_ptr || type == array_ptr)
+			key_cmp = get_uint_a_indx(meta, key_cmp);
+
+		result = std::strcmp(key, data+key_cmp);
+
+		if (result == 0) {
+			//found
+			if ((type == object_ptr || type == array_ptr) && !ret_ptr)
+//				return get_key_location(meta, ext + obj_member_key_offx) - element_type_sz;
+				return get_key_location(meta, ext) - element_type_sz;
+			else
+				return ext;
+		} else {
+			ext = get_ext_next(meta, ext);
+		}
+	}
+	
+	return 0;
+}
+
+
+static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+									bool ret_ptr)
+{
+	return search_keys(key, start, end, meta, data, ret_ptr, false);
+}
+
+static std::string get_element_type_string(element_type type)
+{
+	switch (type)
+	{
+		case object_ptr:
+			return "object pointer";
+		case object:
+			return "object";
+		case string:
+			return "string";
+		case numeric_long:
+			return "numeric long";
+		case numeric_int:
+			return "numeric int";
+		case numeric_double:
+			return "numeric double";
+		case array_ptr:
+			return "array pointer";
+		case array:
+			return "array";
+		case boolean:
+			return "boolean";
+		case null:
+			return "null";
+		case bool_true:
+			return "boolean true";
+		case bool_false:
+			return "boolean false";
+		case extended:
+			return "extended";
+		case empty:
+			return "empty";
+		case invalid:
+			return "invalid";
+		case search:
+			return "search";
+		default:
+			return "invalid";
+	}
+}
+
 
 #endif // _ELEMENT_H_
