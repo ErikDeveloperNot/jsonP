@@ -834,6 +834,8 @@ double jsonP_json::get_double_value(object_id id, index_type parent_type, error 
 	} else {
 		*err = not_double;
 	}
+	
+	return 0;
 }
 	
 long jsonP_json::get_long_value(search_path_element *path, unsigned int path_count, error *err)
@@ -864,6 +866,8 @@ long jsonP_json::get_long_value(object_id id, index_type parent_type, error *err
 	} else {
 		*err = not_long;
 	}
+	
+	return 0;
 }
 
 long jsonP_json::get_long_value(char *key, object_id parent_id, error *err)
@@ -919,13 +923,15 @@ bool jsonP_json::get_bool_value(object_id id, index_type parent_type, error *err
 	} else {
 		*err = not_bool;
 	}
+	
+	return false;
 }
 
 bool jsonP_json::get_bool_value(char *key, object_id parent_id, error *err)
 {
 	if (get_element_type(meta_data, parent_id) != object) {
 		*err = invalid_container;
-		return NULL;
+		return false;
 	}
 	
 	parent_id += obj_member_sz;
@@ -965,6 +971,8 @@ const char* jsonP_json::get_string_value(object_id id, index_type parent_type, e
 	} else {
 		*err = not_string;
 	}
+	
+	return NULL;
 }
 	
 	
