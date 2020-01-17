@@ -39,13 +39,15 @@ public:
 	char match7[20] = {"/widget/int_long\0"};
 	char match8[25] = {"/widget/embed_array/4\0"};
 	
-	jsonP_json long_live;
+	jsonP_json *long_live = nullptr;
+	char *pretty;
 	
 	test_push_handler() = default;
 	
 	~test_push_handler()
 	{
 		std::cout << "test_push_handler destructor\n";
+		delete long_live;
 	}
 	
 	virtual bool get_element(const char *path)
@@ -80,12 +82,17 @@ public:
 			object_id root = j->get_doc_root();
 			unsigned int k_cnt = j->get_elements_count(root);
 			std::cout << "\nObject key count=" << k_cnt << std::endl;
-			std::cout << j->stringify_pretty() << "\n\n";
-
+			pretty = j->stringify_pretty();
+			std::cout << pretty << "\n\n";
+			free(pretty);
+			
 			//make a copy
-			long_live = *j;
-			std::cout << long_live.stringify_pretty() << "\n\n";
-
+			long_live = new jsonP_json{*j};
+			pretty = long_live->stringify_pretty();
+			std::cout << pretty << "\n\n";
+			free(pretty);
+			delete long_live;
+			long_live = nullptr;
 		} else if (type == bool_true) {
 			std::cout << "bool value: true" << std::endl;
 		} else if (type == bool_false) {
@@ -97,7 +104,9 @@ public:
 			object_id root = j->get_doc_root();
 			unsigned int k_cnt = j->get_elements_count(root);
 			std::cout << "\nArray member count=" << k_cnt << std::endl;
-			std::cout << j->stringify_pretty() << "\n\n";
+			pretty = j->stringify_pretty();
+			std::cout << pretty << "\n\n";
+			free(pretty);
 		}
 		
 		std::cout << std::endl;

@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=User One
-Date                   :=31/12/2019
+Date                   :=08/01/2020
 CodeLitePath           :="/Users/user1/Library/Application Support/CodeLite"
 LinkerName             :=/usr/bin/clang++
 SharedObjectLinkerName :=/usr/bin/clang++ -dynamiclib -fPIC
@@ -50,8 +50,8 @@ LibPath                := $(LibraryPathSwitch).
 AR       := /usr/bin/ar rcu
 CXX      := /usr/bin/clang++
 CC       := /usr/bin/clang
-CXXFLAGS :=  -g -O3 -std=c++11 $(Preprocessors)
-CFLAGS   :=  -g -O3 $(Preprocessors)
+CXXFLAGS :=  -g -O0 -std=c++11 $(Preprocessors)
+CFLAGS   :=  -g -O0 $(Preprocessors)
 ASFLAGS  := 
 AS       := /usr/bin/as
 
@@ -60,7 +60,7 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/Applications/codelite.app/Contents/SharedSupport/
-Objects0=$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_buffer_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/file_chunk_impl.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_push_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_json.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/jsonP_buffer_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/file_chunk_impl.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_push_parser.cpp$(ObjectSuffix) $(IntermediateDirectory)/jsonP_json.cpp$(ObjectSuffix) 
 
 
 
@@ -93,22 +93,6 @@ PreBuild:
 ##
 ## Objects
 ##
-$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(ObjectSuffix): modified_json_push_handler_impl.cpp $(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/Users/user1/udemy/CPP/UdemyCPP/jsonP_dyn/modified_json_push_handler_impl.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(DependSuffix): modified_json_push_handler_impl.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(DependSuffix) -MM modified_json_push_handler_impl.cpp
-
-$(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(PreprocessSuffix): modified_json_push_handler_impl.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/modified_json_push_handler_impl.cpp$(PreprocessSuffix) modified_json_push_handler_impl.cpp
-
-$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix): jsonP_parser.cpp $(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/Users/user1/udemy/CPP/UdemyCPP/jsonP_dyn/jsonP_parser.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix): jsonP_parser.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix) -MM jsonP_parser.cpp
-
-$(IntermediateDirectory)/jsonP_parser.cpp$(PreprocessSuffix): jsonP_parser.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/jsonP_parser.cpp$(PreprocessSuffix) jsonP_parser.cpp
-
 $(IntermediateDirectory)/jsonP_buffer_parser.cpp$(ObjectSuffix): jsonP_buffer_parser.cpp $(IntermediateDirectory)/jsonP_buffer_parser.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/Users/user1/udemy/CPP/UdemyCPP/jsonP_dyn/jsonP_buffer_parser.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jsonP_buffer_parser.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/jsonP_buffer_parser.cpp$(DependSuffix): jsonP_buffer_parser.cpp
@@ -124,6 +108,14 @@ $(IntermediateDirectory)/file_chunk_impl.cpp$(DependSuffix): file_chunk_impl.cpp
 
 $(IntermediateDirectory)/file_chunk_impl.cpp$(PreprocessSuffix): file_chunk_impl.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/file_chunk_impl.cpp$(PreprocessSuffix) file_chunk_impl.cpp
+
+$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix): jsonP_parser.cpp $(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/Users/user1/udemy/CPP/UdemyCPP/jsonP_dyn/jsonP_parser.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix): jsonP_parser.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/jsonP_parser.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/jsonP_parser.cpp$(DependSuffix) -MM jsonP_parser.cpp
+
+$(IntermediateDirectory)/jsonP_parser.cpp$(PreprocessSuffix): jsonP_parser.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/jsonP_parser.cpp$(PreprocessSuffix) jsonP_parser.cpp
 
 $(IntermediateDirectory)/jsonP_push_parser.cpp$(ObjectSuffix): jsonP_push_parser.cpp $(IntermediateDirectory)/jsonP_push_parser.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/Users/user1/udemy/CPP/UdemyCPP/jsonP_dyn/jsonP_push_parser.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jsonP_push_parser.cpp$(ObjectSuffix) $(IncludePath)

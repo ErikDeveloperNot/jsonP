@@ -38,8 +38,9 @@ options{options}
 	use_json = (options & PRESERVE_JSON) ? false : true;
 	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
-std::cout << "OPTIONS: " << options << ", (options & DONT_SORT_KEYS)=" << (options & DONT_SORT_KEYS) << std::endl;
-	// For now just make initial 1mb, will be configurable
+
+//std::cout << "OPTIONS: " << options << ", (options & DONT_SORT_KEYS)=" << (options & DONT_SORT_KEYS) << std::endl;
+
 	stack_buf_sz = 1024;// * 10 * 10;
 	stack_buf = (byte*) malloc(stack_buf_sz);
 
@@ -56,9 +57,8 @@ std::cout << "OPTIONS: " << options << ", (options & DONT_SORT_KEYS)=" << (optio
 jsonP_parser::~jsonP_parser()
 {
 	free(stack_buf);
-//	free(data);
 	
-	std::cout << "End jsonP destructor" << std::endl;
+	std::cout << "End jsonP_parser destructor" << std::endl;
 }
 
 
@@ -102,7 +102,7 @@ jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
 		unsigned int i = parse_object();
 		
 		if (shrink_buffers) {
-			std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
+//			std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
 			data = (byte*)realloc(data, data_i);
 			
 			if (!use_json)

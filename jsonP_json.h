@@ -42,7 +42,7 @@ private:
 	unsigned int *meta_i_ptr;
 	unsigned int doc_root;
 	
-//	void *get_next_array_buf;
+	void *get_next_array_buf;
 	unsigned int get_next_array_indx;
 	unsigned int get_next_array_mem_cnt;
 	object_id get_next_array_id;
@@ -54,6 +54,7 @@ private:
 	
 	
 	object_id get_object_id(search_path_element *, unsigned int, bool);
+	object_id get_object_id(char *path, const char *delim, bool ret_ptr, object_id *ret_parent_container = NULL);
 	
 	void parse_object(unsigned int &, unsigned int &, unsigned int &, char *&);
 	void parse_array(unsigned int &, unsigned int &, unsigned int &, char *&);
@@ -66,55 +67,69 @@ private:
 public:
 	jsonP_json(byte *, byte *, unsigned int, unsigned int, unsigned int, unsigned short options = 0);
 	jsonP_json(element_type, unsigned int, unsigned int buf_sz = 102400, unsigned short options = 0);
-	
 	jsonP_json(const jsonP_json &);
-	
-	jsonP_json() = default;
+//	jsonP_json();
+
 	~jsonP_json();
 	
 	// manipulate methods
 	object_id add_container(char *, unsigned int, object_id, element_type);
 	int add_value_type(element_type, object_id, char *, void * = NULL);
+//	int add_value_type(element_type, object_id, char *, const void * = NULL);
 	
 	int update_value(object_id, index_type, element_type, void *);
 	int update_value(search_path_element *, unsigned int, element_type, void *);
+	int update_value(char *, char *, element_type, void *);
 
 	//for delete value it makes it way easier to have full path so no option for object_id for now
 	int delete_value(search_path_element *, unsigned int, char *, error*);
+	int delete_value(char *path, char *delim, char *key, error *);
+	int delete_value(object_id id, object_id parent, char *key, error *);
 	
 	// access methods
 	object_id get_doc_root() { return doc_root; }
 	object_id get_object_id(search_path_element *, unsigned int);
-	
+	object_id get_object_id(char *path, const char *delim);
+
 	unsigned int get_members_count(object_id);
 	unsigned int get_members_count(search_path_element *, unsigned int);
+	unsigned int get_members_count(char *path, char *delim);
 	
 	inline unsigned int get_elements_count(object_id id) { return get_members_count(id); }
 	inline unsigned int get_elements_count(search_path_element *path, unsigned int path_count) { return get_members_count(path, path_count); }
+	inline unsigned int get_elements_count(char *path, char *delim) { return get_members_count(path, delim); }
 	
 	//object_key* needs to be freed by user when done
 	unsigned int get_keys(search_path_element *, unsigned int, struct object_key *&);
+	unsigned int get_keys(char *path, char *delim, struct object_key *&);
 	unsigned int get_keys(object_id, struct object_key *&);
-	\
+	
 	
 	/*
-	 * for the first call pass the object_id or search_path, for remaining calls pass NULL
+	 * for the first call pass the object_id or search_path or char *path, for remaining calls pass NULL or 0 (object_id)
 	 * when no more elements are avail and empty element_type will be returned.
 	 * an internal buffer is used to hold the value returned. This value will be replaced
 	 * with each call to next. The memoery alloc/dealloc of this buffer is handled by the parser
 	 */
 	element_type get_next_array_element(object_id, const void *&);
 	element_type get_next_array_element(search_path_element *, unsigned int, const void *&);
-	
+	element_type get_next_array_element(char *path, char *delim, const void *&);
 	
 	double get_double_value(search_path_element *, unsigned int, error*);
+	double get_double_value(char *, char *, error*);
 	double get_double_value(object_id, index_type, error*);
 	long get_long_value(search_path_element *, unsigned int, error*);
+	long get_long_value(char *, char *, error*);
 	long get_long_value(object_id, index_type, error*);
+	long get_long_value(char *key, object_id parent, error*);
 	bool get_bool_value(search_path_element *, unsigned int, error*);
+	bool get_bool_value(char *, char *, error*);
 	bool get_bool_value(object_id, index_type, error*);
+	bool get_bool_value(char *key, object_id parent, error*);
 	const char* get_string_value(search_path_element *, unsigned int, error*);
+	const char* get_string_value(char *, char *, error*);
 	const char* get_string_value(object_id, index_type, error*);
+	const char* get_string_value(char *key, object_id parent, error*);
 	
 	// create json txt representation methods
 	char * stringify();

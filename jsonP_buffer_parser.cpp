@@ -12,8 +12,8 @@ jsonP_buffer_parser::jsonP_buffer_parser(std::string file_name, int buf_sz) : bu
 	
 	reader = new file_chunk_impl{file_name, buffer_size};
 	buffer = (char*) malloc(sizeof(char) * (buffer_size + 1));
-	shrink_buffers = true;
-}
+	options = PRESERVE_JSON | SHRINK_BUFS;
+	}
 
 
 jsonP_buffer_parser::jsonP_buffer_parser(IChunk_reader *reader, int buf_sz) : buffer_size{buf_sz}, reader{reader}
@@ -25,7 +25,7 @@ jsonP_buffer_parser::jsonP_buffer_parser(IChunk_reader *reader, int buf_sz) : bu
 	}
 	
 	buffer = (char*) malloc(sizeof(char) * (buffer_size + 1));
-	shrink_buffers = true;
+	options = PRESERVE_JSON | SHRINK_BUFS;
 }
 
 
@@ -83,7 +83,9 @@ jsonP_json* jsonP_buffer_parser::parse()
 	jsonP_json *doc = nullptr;
 	
 	//new stuff
-	use_json = false;
+	use_json = (options & PRESERVE_JSON) ? false : true;
+	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
+	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
 	stack_buf_sz = 1024;
 	stack_buf = (byte*) malloc(stack_buf_sz);
 	data_sz = buffer_size;

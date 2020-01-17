@@ -4,6 +4,7 @@
 #include "jsonP_exception.h"
 
 #include <iostream>
+#include <algorithm>
 
 
 #define get_element_type(buf,indx)			*(element_type*)&(buf)[ (indx) ]
@@ -99,6 +100,7 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
 									bool ret_ptr, bool dont_sort_keys)
 {
+//std::cout << "key: " << key << ", start: " << start << ", end: " << end << ", dont_sort: " << dont_sort_keys << std::endl;
 	unsigned int mid; // = (((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
 	unsigned int ext = get_ext_start(meta, end + obj_member_sz);
 	unsigned int key_cmp;
@@ -109,7 +111,7 @@ static unsigned int search_keys(char *key, unsigned int start, unsigned int end,
 		//keys are sort binary search
 		while (start <= end) {
 			mid = (unsigned int)(((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
-//			std::cout << "Mid: " << mid << std::endl;
+//std::cout << "Mid: " << mid << std::endl;
 			type = get_element_type(meta, mid);
 
 			if (type == empty) {

@@ -13,8 +13,7 @@ parsing_started{false},
 parsing_array{false},
 array_i{0}
 {
-	dont_sort_keys = true;
-	shrink_buffers = false;
+	options = PRESERVE_JSON | DONT_SORT_KEYS;
 	cur_path = (char*) malloc(1024);
 }
 
@@ -30,15 +29,14 @@ parsing_started{false},
 parsing_array{false},
 array_i{0}
 {
-	dont_sort_keys = true;
-	shrink_buffers = false;
+	options = PRESERVE_JSON | DONT_SORT_KEYS;
 	cur_path = (char*) malloc(1024);
 }
 
 
 jsonP_push_parser::~jsonP_push_parser()
 {
-	std::cout << "jsonP_push_parser destructor\n";
+//	std::cout << "jsonP_push_parser destructor\n";
 	free(cur_path);
 }
 
