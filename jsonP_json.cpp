@@ -874,7 +874,7 @@ long jsonP_json::get_long_value(char *key, object_id parent_id, error *err)
 {
 	if (get_element_type(meta_data, parent_id) != object) {
 		*err = invalid_container;
-		return NULL;
+		return 0;
 	}
 	
 	parent_id += obj_member_sz;
@@ -1523,7 +1523,7 @@ char* jsonP_json::stringify_pretty()
 	size_t indent_l{0};
 	
 	for (size_t i{0}; i < raw_len; i++) {
-		sz = increase_txt_buffer(100, sz, pretty_i, pretty);
+		sz = increase_txt_buffer(100 + indent_l, sz, pretty_i, pretty);
 		
 		if (raw[i] == '"') {
 			

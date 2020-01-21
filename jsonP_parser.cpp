@@ -283,7 +283,7 @@ element_type jsonP_parser::parse_numeric()
 		} else if ((c == minus || c == plus) && (sign || exp_sign)) {
 			exp_sign = false;
 		} else {
-			std::string err = "parse error, trying to numeric value at index: " + std::to_string(index);
+			std::string err = "parse error, trying to parse numeric value at index: " + std::to_string(index);
 			set_error(err);
 			throw jsonP_exception{err.c_str()};
 		}

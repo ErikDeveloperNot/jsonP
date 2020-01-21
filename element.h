@@ -38,24 +38,24 @@ enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, n
 								array_ptr=6, array=7, boolean=8, null=9, extended=10, empty=11, bool_true=12, 
 								bool_false=13, search=14, invalid=15};
 
-static size_t element_type_sz = 1;
-static size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
-static size_t obj_member_ext_sz = obj_member_sz + sizeof(unsigned int);
-static size_t obj_root_sz = sizeof(unsigned int);
-static size_t arry_member_sz = obj_member_sz;
-static size_t arry_member_ext_sz = arry_member_sz + sizeof(unsigned int);
-static size_t arry_root_sz = obj_root_sz;
-static size_t obj_member_key_offx = sizeof(element_type);
-static size_t obj_member_ext_next_offx = obj_member_sz;
-static size_t arry_member_val_offx = sizeof(element_type);
-static size_t arry_member_ext_next_offx = arry_member_sz;
+static const size_t element_type_sz = 1;
+static const size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
+static const size_t obj_member_ext_sz = obj_member_sz + sizeof(unsigned int);
+static const size_t obj_root_sz = sizeof(unsigned int);
+static const size_t arry_member_sz = obj_member_sz;
+static const size_t arry_member_ext_sz = arry_member_sz + sizeof(unsigned int);
+static const size_t arry_root_sz = obj_root_sz;
+static const size_t obj_member_key_offx = sizeof(element_type);
+static const size_t obj_member_ext_next_offx = obj_member_sz;
+static const size_t arry_member_val_offx = sizeof(element_type);
+static const size_t arry_member_ext_next_offx = arry_member_sz;
 
 
 // used to partition each element used during sorting
 struct obj_member
 {
-	//byte b[obj_member_sz];      // <-- hardcode for now, see if I can change this with define if else ???
-	byte b[5];
+	byte b[obj_member_sz];      // <-- hardcode for now, see if I can change this with define if else ???
+//	byte b[5];
 };
 
 
