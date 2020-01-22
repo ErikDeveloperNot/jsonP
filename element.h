@@ -64,10 +64,10 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 	unsigned long lft;
 	unsigned long rt;
 //	byte * text = (use_json) ? json : data;
-
+static unsigned int cnt{0};
 	std::sort((obj_member*)start, (obj_member*)end, [&](obj_member l, obj_member r) { 
 //		std::cout << "l type: " << *(element_type*)&l.b[0] << ", R type: " << *(element_type*)&r.b[0] << std::endl;
-			
+cnt++;			
 //		if (*(element_type*)&l.b[0] == empty)
 		if (get_element_type(l.b, 0) == empty)
 			return false;
@@ -93,6 +93,7 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 
 		return std::strcmp(data+lft, data+rt) < 0;
 	});
+std::cout << "\ncnt: " << cnt;
 }
 
 
