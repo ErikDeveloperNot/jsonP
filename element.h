@@ -67,7 +67,7 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 
 	std::sort((obj_member*)start, (obj_member*)end, [&](obj_member l, obj_member r) { 
 //		std::cout << "l type: " << *(element_type*)&l.b[0] << ", R type: " << *(element_type*)&r.b[0] << std::endl;
-			
+
 //		if (*(element_type*)&l.b[0] == empty)
 		if (get_element_type(l.b, 0) == empty)
 			return false;
