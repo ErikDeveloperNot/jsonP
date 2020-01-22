@@ -9,16 +9,16 @@
 
 #define get_element_type(buf,indx)			*(element_type*)&(buf)[ (indx) ]
 #define set_element_type(buf,indx,typ)		*(element_type*)&(buf)[ (indx) ] = (typ)
-#define set_key_offx_value(buf,indx,val)	*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ] = (val)
-#define set_uint_a_indx(buf,indx,val)		*(unsigned int*)&(buf)[ (indx) ] = (val)
-#define get_key_location(buf,indx)			*(unsigned int*)&(buf)[ (indx) + obj_member_key_offx ]
-#define get_val_location(buf,indx)			*(unsigned int*)&(buf)[ (indx) + obj_member_key_offx ]
-#define get_uint_a_indx(buf,indx)			*(unsigned int*)&(buf)[ (indx) ]
-#define get_key_count(buf,indx)			*(unsigned int*)&(buf)[ (indx) ]
-#define get_ext_start(buf,indx)			*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ]
-#define get_ext_first(buf,indx,k_cnt)		*(unsigned int*)&(buf)[ (indx) + (obj_member_sz) + (obj_root_sz) + ((k_cnt) * (obj_member_sz)) + (obj_member_key_offx) ]
-#define get_ext_next(buf,indx)				*(unsigned int*)&(buf)[ (indx) + (obj_member_ext_next_offx) ]
-#define get_container_loc(buf, indx)		*(unsigned int*)&(buf)[ (indx) + (obj_member_key_offx) ]
+#define set_key_offx_value(buf,indx,val)	*(unsigned long*)&(buf)[ (indx) + (obj_member_key_offx) ] = (val)
+#define set_uint_a_indx(buf,indx,val)		*(unsigned long*)&(buf)[ (indx) ] = (val)
+#define get_key_location(buf,indx)			*(unsigned long*)&(buf)[ (indx) + obj_member_key_offx ]
+#define get_val_location(buf,indx)			*(unsigned long*)&(buf)[ (indx) + obj_member_key_offx ]
+#define get_uint_a_indx(buf,indx)			*(unsigned long*)&(buf)[ (indx) ]
+#define get_key_count(buf,indx)			*(unsigned long*)&(buf)[ (indx) ]
+#define get_ext_start(buf,indx)			*(unsigned long*)&(buf)[ (indx) + (obj_member_key_offx) ]
+#define get_ext_first(buf,indx,k_cnt)		*(unsigned long*)&(buf)[ (indx) + (obj_member_sz) + (obj_root_sz) + ((k_cnt) * (obj_member_sz)) + (obj_member_key_offx) ]
+#define get_ext_next(buf,indx)				*(unsigned long*)&(buf)[ (indx) + (obj_member_ext_next_offx) ]
+#define get_container_loc(buf, indx)		*(unsigned long*)&(buf)[ (indx) + (obj_member_key_offx) ]
 
 //#define increase_stack_buffer()			((stack_buf_sz) - (stack_i)) < 50
 //#define increase_data_buffer(needed)		(((data_sz) - (data_i)) < (needed))
@@ -39,11 +39,11 @@ enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, n
 								bool_false=13, search=14, invalid=15};
 
 static const size_t element_type_sz = 1;
-static const size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
-static const size_t obj_member_ext_sz = obj_member_sz + sizeof(unsigned int);
-static const size_t obj_root_sz = sizeof(unsigned int);
+static const size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned long);
+static const size_t obj_member_ext_sz = obj_member_sz + sizeof(unsigned long);
+static const size_t obj_root_sz = sizeof(unsigned long);
 static const size_t arry_member_sz = obj_member_sz;
-static const size_t arry_member_ext_sz = arry_member_sz + sizeof(unsigned int);
+static const size_t arry_member_ext_sz = arry_member_sz + sizeof(unsigned long);
 static const size_t arry_root_sz = obj_root_sz;
 static const size_t obj_member_key_offx = sizeof(element_type);
 static const size_t obj_member_ext_next_offx = obj_member_sz;
@@ -61,8 +61,8 @@ struct obj_member
 
 static void sort_keys(void *start, void *end, byte *meta, byte *data)
 {
-	unsigned int lft;
-	unsigned int rt;
+	unsigned long lft;
+	unsigned long rt;
 //	byte * text = (use_json) ? json : data;
 
 	std::sort((obj_member*)start, (obj_member*)end, [&](obj_member l, obj_member r) { 
@@ -97,20 +97,20 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 
 
 
-static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+static unsigned long search_keys(char *key, unsigned long start, unsigned long end, byte *meta, byte *data, 
 									bool ret_ptr, bool dont_sort_keys)
 {
 //std::cout << "key: " << key << ", start: " << start << ", end: " << end << ", dont_sort: " << dont_sort_keys << std::endl;
-	unsigned int mid; // = (((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
-	unsigned int ext = get_ext_start(meta, end + obj_member_sz);
-	unsigned int key_cmp;
+	unsigned long mid; // = (((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
+	unsigned long ext = get_ext_start(meta, end + obj_member_sz);
+	unsigned long key_cmp;
 	element_type type;
-	int result;
+	long result;
 	
 	if (!dont_sort_keys) {
 		//keys are sort binary search
 		while (start <= end) {
-			mid = (unsigned int)(((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
+			mid = (unsigned long)(((end - start) / sizeof(obj_member)) / 2) * sizeof(obj_member) + start;
 //std::cout << "Mid: " << mid << std::endl;
 			type = get_element_type(meta, mid);
 
@@ -194,7 +194,7 @@ static unsigned int search_keys(char *key, unsigned int start, unsigned int end,
 }
 
 
-static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+static unsigned long search_keys(char *key, unsigned long start, unsigned long end, byte *meta, byte *data, 
 									bool ret_ptr)
 {
 	return search_keys(key, start, end, meta, data, ret_ptr, false);

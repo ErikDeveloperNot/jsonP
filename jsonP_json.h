@@ -5,8 +5,8 @@
 
 
 //typedef char byte;
-typedef unsigned int object_id;
-typedef unsigned int array_id;
+typedef unsigned long object_id;
+typedef unsigned long array_id;
 
 
 enum index_type : u_int8_t { object_key=0, array_indx=1 }; 
@@ -32,19 +32,19 @@ class jsonP_json
 {
 private:
 	byte *data;
-	unsigned int data_length;
-	unsigned int data_i;
+	unsigned long data_length;
+	unsigned long data_i;
 	bool data_eq_meta;
 	byte *meta_data;
-	unsigned int meta_length;
-	unsigned int *meta_length_ptr;
-	unsigned int meta_i;
-	unsigned int *meta_i_ptr;
-	unsigned int doc_root;
+	unsigned long meta_length;
+	unsigned long *meta_length_ptr;
+	unsigned long meta_i;
+	unsigned long *meta_i_ptr;
+	unsigned long doc_root;
 	
 	void *get_next_array_buf;
-	unsigned int get_next_array_indx;
-	unsigned int get_next_array_mem_cnt;
+	unsigned long get_next_array_indx;
+	unsigned long get_next_array_mem_cnt;
 	object_id get_next_array_id;
 	object_id get_next_array_ext_next;
 	
@@ -56,24 +56,24 @@ private:
 	object_id get_object_id(search_path_element *, unsigned int, bool);
 	object_id get_object_id(char *path, const char *delim, bool ret_ptr, object_id *ret_parent_container = NULL);
 	
-	void parse_object(unsigned int &, unsigned int &, unsigned int &, char *&);
-	void parse_array(unsigned int &, unsigned int &, unsigned int &, char *&);
+	void parse_object(unsigned long &, unsigned long &, unsigned long &, char *&);
+	void parse_array(unsigned long &, unsigned long &, unsigned long &, char *&);
 	
-	unsigned int get_meta_slot(unsigned int, bool &needs_sort, element_type);
+	unsigned long get_meta_slot(unsigned long, bool &needs_sort, element_type);
 
 	element_type get_value(object_id, index_type, const char *&);
 	
 
 public:
-	jsonP_json(byte *, byte *, unsigned int, unsigned int, unsigned int, unsigned short options = 0);
-	jsonP_json(element_type, unsigned int, unsigned int buf_sz = 102400, unsigned short options = 0);
+	jsonP_json(byte *, byte *, unsigned long, unsigned long, unsigned long, unsigned short options = 0);
+	jsonP_json(element_type, unsigned long, unsigned long buf_sz = 102400, unsigned short options = 0);
 	jsonP_json(const jsonP_json &);
 //	jsonP_json();
 
 	~jsonP_json();
 	
 	// manipulate methods
-	object_id add_container(char *, unsigned int, object_id, element_type);
+	object_id add_container(char *, unsigned long, object_id, element_type);
 	int add_value_type(element_type, object_id, char *, void * = NULL);
 //	int add_value_type(element_type, object_id, char *, const void * = NULL);
 	
@@ -91,18 +91,18 @@ public:
 	object_id get_object_id(search_path_element *, unsigned int);
 	object_id get_object_id(char *path, const char *delim);
 
-	unsigned int get_members_count(object_id);
-	unsigned int get_members_count(search_path_element *, unsigned int);
-	unsigned int get_members_count(char *path, char *delim);
+	unsigned long get_members_count(object_id);
+	unsigned long get_members_count(search_path_element *, unsigned int);
+	unsigned long get_members_count(char *path, char *delim);
 	
-	inline unsigned int get_elements_count(object_id id) { return get_members_count(id); }
-	inline unsigned int get_elements_count(search_path_element *path, unsigned int path_count) { return get_members_count(path, path_count); }
-	inline unsigned int get_elements_count(char *path, char *delim) { return get_members_count(path, delim); }
+	inline unsigned long get_elements_count(object_id id) { return get_members_count(id); }
+	inline unsigned long get_elements_count(search_path_element *path, unsigned int path_count) { return get_members_count(path, path_count); }
+	inline unsigned long get_elements_count(char *path, char *delim) { return get_members_count(path, delim); }
 	
 	//object_key* needs to be freed by user when done
-	unsigned int get_keys(search_path_element *, unsigned int, struct object_key *&);
-	unsigned int get_keys(char *path, char *delim, struct object_key *&);
-	unsigned int get_keys(object_id, struct object_key *&);
+	unsigned long get_keys(search_path_element *, unsigned int, struct object_key *&);
+	unsigned long get_keys(char *path, char *delim, struct object_key *&);
+	unsigned long get_keys(object_id, struct object_key *&);
 	
 	
 	/*
@@ -148,11 +148,11 @@ public:
 		return get_elements_type(get_object_id(path, path_count));
 	}
 	
-	inline unsigned int increase_txt_buffer(unsigned int needed, unsigned int sz, unsigned int indx, char *& txt) 
+	inline unsigned long increase_txt_buffer(unsigned long needed, unsigned long sz, unsigned long indx, char *& txt) 
 	{
 		if (needed + 20 > sz - indx) {
 //			std::cout << "current sz: " << sz << ", needed: " << needed << ", indx: " << indx << std::endl;
-			sz += (needed + (unsigned int)(sz * 0.25));
+			sz += (needed + (unsigned long)(sz * 0.25));
 			txt = (char*) realloc(txt, sz);
 //			std::cout << "stringify realloc needed, new size: " << sz << std::endl;
 		}
@@ -161,7 +161,7 @@ public:
 	}
 	
 	
-	inline unsigned int increase_meta_buffer(unsigned int needed, unsigned int sz, unsigned int indx)
+	inline unsigned long increase_meta_buffer(unsigned long needed, unsigned long sz, unsigned long indx)
 	{
 		sz = increase_txt_buffer(needed, sz, indx, meta_data);
 		
@@ -172,7 +172,7 @@ public:
 	}
 	
 	
-	inline unsigned int increase_dat_buffer(unsigned int needed, unsigned int sz, unsigned int indx)
+	inline unsigned long increase_dat_buffer(unsigned long needed, unsigned long sz, unsigned long indx)
 	{
 		sz = increase_txt_buffer(needed, sz, indx, data);
 		

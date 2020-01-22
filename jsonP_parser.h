@@ -72,18 +72,18 @@ class jsonP_parser
 protected:
 	std::string json_str;
 	char * json = nullptr;
-	unsigned int json_length;
-	unsigned int index;
+	unsigned long json_length;
+	unsigned long index;
 	bool look_for_key;
-	unsigned int value_start;
+	unsigned long value_start;
 	
 	// STUFF for new modle to rid std::map and std::new for each element
 	byte * stack_buf;
-	unsigned int stack_buf_sz;
-	unsigned int stack_i;
+	unsigned long stack_buf_sz;
+	unsigned long stack_i;
 	byte * data;
-	unsigned int data_sz;
-	unsigned int data_i;
+	unsigned long data_sz;
+	unsigned long data_i;
 
 	//parse options
 	unsigned short options;
@@ -97,7 +97,7 @@ protected:
 
 	//error stuff
 	std::string error_string;
-	int error_index;
+	long error_index;
 	std::string error_json_snip;
 	
 	//virtual parse commands
@@ -112,30 +112,30 @@ protected:
 
 	virtual void parse_key();
 	virtual element_type parse_numeric();
-	virtual unsigned int parse_array();
-	virtual unsigned int parse_object();
+	virtual unsigned long parse_array();
+	virtual unsigned long parse_object();
 	virtual void parse_value();
 	
 	void set_error(std::string error);
 
-void test_parse_object(unsigned int);
-void test_parse_array(unsigned int);
+void test_parse_object(unsigned long);
+void test_parse_array(unsigned long);
 
 
 
 public:
 	jsonP_parser() = default;
 	jsonP_parser(std::string & json, unsigned short options = 0);
-	jsonP_parser(char * json, unsigned int, unsigned short options = 0);
+	jsonP_parser(char * json, unsigned long, unsigned short options = 0);
 	
 	~jsonP_parser();
 
 	jsonP_json * parse();
 	jsonP_json * parse(std::string & json);
-	jsonP_json * parse(char * json, unsigned int);
+	jsonP_json * parse(char * json, unsigned long);
 
 	std::string get_error_string() { return error_string; }
-	int get_error_index() { return error_index; }
+	long get_error_index() { return error_index; }
 	std::string get_error_snip(int chars_before, int chars_after);
 	
 	parse_stats get_parse_stats() { return stats; }

@@ -3,8 +3,8 @@
 #include "jsonP_exception.h"
 
 
-jsonP_json::jsonP_json(byte *data, byte *meta_data, unsigned int data_length, unsigned int meta_length_, 
-						unsigned int doc_root, unsigned short options) : 
+jsonP_json::jsonP_json(byte *data, byte *meta_data, unsigned long data_length, unsigned long meta_length_, 
+						unsigned long doc_root, unsigned short options) : 
 data{data},
 meta_data{meta_data}, 
 data_length{data_length},
@@ -33,7 +33,7 @@ get_next_array_id{0}
 }
 
 
-jsonP_json::jsonP_json(element_type type, unsigned int num_elements, unsigned int buf_sz, unsigned short options) :
+jsonP_json::jsonP_json(element_type type, unsigned long num_elements, unsigned long buf_sz, unsigned short options) :
 get_next_array_indx{0},
 get_next_array_id{0}
 {
@@ -157,9 +157,9 @@ object_id jsonP_json::get_object_id(search_path_element * path, unsigned int pat
 	if (path_count < 1)
 		return 0;
 		
-	unsigned int result = 0;
+	unsigned long result = 0;
 	object_id start = doc_root + obj_member_sz;
-	unsigned int num_keys = get_key_count(meta_data, start);
+	unsigned long num_keys = get_key_count(meta_data, start);
 	start += obj_root_sz;
 	size_t i=0;
 	element_type type;
@@ -181,7 +181,7 @@ object_id jsonP_json::get_object_id(search_path_element * path, unsigned int pat
 			} else {
 				// check if it is in an ext slot
 				object_id ext_start = get_ext_start(meta_data, start + obj_member_sz * num_keys);
-				unsigned int k = num_keys;
+				unsigned long k = num_keys;
 //				std::cout << "ext_start: " << ext_start << "\n\n";				
 
 				while (ext_start > 0) {
@@ -280,9 +280,9 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 	if (tok == NULL)
 		return 0;
 	
-	unsigned int result = doc_root;
+	unsigned long result = doc_root;
 	object_id start = doc_root + obj_member_sz;
-	unsigned int num_keys = get_key_count(meta_data, start);
+	unsigned long num_keys = get_key_count(meta_data, start);
 	start += obj_root_sz;
 //	size_t i=0;
 	element_type type;
@@ -315,7 +315,7 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 			} else {
 				// check if it is in an ext slot
 				object_id ext_start = get_ext_start(meta_data, start + obj_member_sz * num_keys);
-				unsigned int k = num_keys;
+				unsigned long k = num_keys;
 //std::cout << "ext_start: " << ext_start << "\n\n";				
 
 				while (ext_start > 0) {
@@ -413,7 +413,7 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 
 
 
-object_id jsonP_json::add_container(char* key, unsigned int num_keys, object_id id, element_type container_type)
+object_id jsonP_json::add_container(char* key, unsigned long num_keys, object_id id, element_type container_type)
 {
 	element_type parent_type = get_element_type(meta_data, id);
 	
@@ -430,7 +430,7 @@ object_id jsonP_json::add_container(char* key, unsigned int num_keys, object_id 
 	object_id meta_slot = get_meta_slot(id + obj_member_sz, is_ext, container_type);
 		
 	//copy the new objects keys to the data buffer if parent container is an object
-	unsigned int key_loc;
+	unsigned long key_loc;
 	
 	if (parent_type == object) {
 		size_t k_len = strlen(key);
@@ -612,7 +612,7 @@ int jsonP_json::update_value(object_id id, index_type container_type, element_ty
 	
 	if (container_type == object_key) {
 //		unsigned int k_loc = *(unsigned int*)&meta_data[id + obj_member_key_offx];
-		unsigned int k_loc = get_key_location(meta_data, id);
+		unsigned long k_loc = get_key_location(meta_data, id);
 		size_t k_len = strlen(&data[k_loc]) +1;
 		
 		if (len <= strlen((char*)&data[k_loc + k_len])) {
@@ -630,7 +630,7 @@ int jsonP_json::update_value(object_id id, index_type container_type, element_ty
 		}
 	} else {
 //		unsigned int v_loc = *(unsigned int*)&meta_data[id + obj_member_key_offx];
-		unsigned int v_loc = get_val_location(meta_data, id);
+		unsigned long v_loc = get_val_location(meta_data, id);
 		size_t v_len = strlen(&data[v_loc]) +1;
 		
 		if (len <= v_len) {
@@ -697,8 +697,8 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 		return -1;
 	}
 	
-	unsigned int num_keys = get_key_count(meta_data, parent_container + obj_member_sz);
-	unsigned int first_ext = parent_container + obj_member_sz + obj_root_sz + (obj_member_sz * num_keys);
+	unsigned long num_keys = get_key_count(meta_data, parent_container + obj_member_sz);
+	unsigned long first_ext = parent_container + obj_member_sz + obj_root_sz + (obj_member_sz * num_keys);
 
 //	std::cout << "id: " << id << ", parent_container: " << parent_container << ", num_keys: " << num_keys <<
 //			", first_ext: " << first_ext << std::endl;
@@ -719,7 +719,7 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 //			std::cout << "*(object_id*)&meta_data[first_ext + obj_member_ext_next_offx]: " << *(object_id*)&meta_data[first_ext + obj_member_ext_next_offx] << std::endl;
 //			std::cout << "data_i: " << data_i << std::endl;
 
-			unsigned int temp = *(object_id*)&meta_data[*(object_id*)&meta_data[first_ext + obj_member_key_offx] + obj_member_ext_next_offx];
+			unsigned long temp = *(object_id*)&meta_data[*(object_id*)&meta_data[first_ext + obj_member_key_offx] + obj_member_ext_next_offx];
 
 //			std::cout << "temp: " << temp << std::endl;
 
@@ -790,7 +790,7 @@ element_type jsonP_json::get_value(object_id id, index_type parent_type, const c
 	
 	element_type type = get_element_type(meta_data, id);
 //	unsigned int start = get_key_location(meta_data, id + element_type_sz);;
-	unsigned int start = get_key_location(meta_data, id);
+	unsigned long start = get_key_location(meta_data, id);
 	
 	if (parent_type == object_key) {
 		//eat the key
@@ -878,7 +878,7 @@ long jsonP_json::get_long_value(char *key, object_id parent_id, error *err)
 	}
 	
 	parent_id += obj_member_sz;
-	unsigned int num_keys = get_key_count(meta_data, parent_id);
+	unsigned long num_keys = get_key_count(meta_data, parent_id);
 	parent_id += obj_root_sz;
 	object_id id = search_keys(key, parent_id, (parent_id + (num_keys * obj_member_sz) - obj_member_sz), meta_data, data, false, dont_sort_keys);
 	
@@ -935,7 +935,7 @@ bool jsonP_json::get_bool_value(char *key, object_id parent_id, error *err)
 	}
 	
 	parent_id += obj_member_sz;
-	unsigned int num_keys = get_key_count(meta_data, parent_id);
+	unsigned long num_keys = get_key_count(meta_data, parent_id);
 	parent_id += obj_root_sz;
 	object_id id = search_keys(key, parent_id, (parent_id + (num_keys * obj_member_sz) - obj_member_sz), meta_data, data, false, dont_sort_keys);
 	
@@ -984,7 +984,7 @@ const char* jsonP_json::get_string_value(char *key, object_id parent_id, error *
 	}
 	
 	parent_id += obj_member_sz;
-	unsigned int num_keys = get_key_count(meta_data, parent_id);
+	unsigned long num_keys = get_key_count(meta_data, parent_id);
 	parent_id += obj_root_sz;
 	object_id id = search_keys(key, parent_id, (parent_id + (num_keys * obj_member_sz) - obj_member_sz), meta_data, data, false, dont_sort_keys);
 	
@@ -992,10 +992,10 @@ const char* jsonP_json::get_string_value(char *key, object_id parent_id, error *
 }
 
 
-unsigned int jsonP_json::get_members_count(object_id id)
+unsigned long jsonP_json::get_members_count(object_id id)
 {
 	if (get_element_type(meta_data, id) == object || get_element_type(meta_data, id) == array) {
-		unsigned int cnt = get_key_count(meta_data, id + obj_member_sz);
+		unsigned long cnt = get_key_count(meta_data, id + obj_member_sz);
 		object_id ext = get_ext_start(meta_data, id + obj_member_sz + obj_root_sz + (cnt * obj_member_sz));
 
 		if (ext > 0) {
@@ -1019,45 +1019,45 @@ unsigned int jsonP_json::get_members_count(object_id id)
 }
 
 
-unsigned int jsonP_json::get_members_count(search_path_element* path, unsigned int path_count)
+unsigned long jsonP_json::get_members_count(search_path_element* path, unsigned int path_count)
 {
 	return get_members_count(get_object_id(path, path_count));
 }
 
 
-unsigned int jsonP_json::get_members_count(char *path, char *delim)
+unsigned long jsonP_json::get_members_count(char *path, char *delim)
 {
 	return get_members_count(get_object_id(path, delim));
 }
 
 
-unsigned int jsonP_json::get_keys(search_path_element * path, unsigned int path_count, struct object_key *&keys)
+unsigned long jsonP_json::get_keys(search_path_element * path, unsigned int path_count, struct object_key *&keys)
 {
 	return get_keys(get_object_id(path, path_count), keys);
 }
 
 
-unsigned int jsonP_json::get_keys(char *path, char *delim, struct object_key *&keys)
+unsigned long jsonP_json::get_keys(char *path, char *delim, struct object_key *&keys)
 {
 	return get_keys(get_object_id(path, delim), keys);
 }
 
 
-unsigned int jsonP_json::get_keys(object_id id, struct object_key *&keys)
+unsigned long jsonP_json::get_keys(object_id id, struct object_key *&keys)
 {
 	if (get_elements_type(id) != object)
 		return 0;
 		
-	unsigned int mem_cnt = get_members_count(id);
+	unsigned long mem_cnt = get_members_count(id);
 
 	if (mem_cnt == 0)
 		return 0;
 
 	keys = (struct object_key *) malloc(sizeof(struct object_key) * mem_cnt);
 
-	unsigned int i = 0;
+	unsigned long i = 0;
 	id += obj_member_sz;
-	unsigned int key_cnt = get_key_count(meta_data, id);
+	unsigned long key_cnt = get_key_count(meta_data, id);
 	id += obj_root_sz;
 	
 	while (i < key_cnt && i < mem_cnt) {
@@ -1184,9 +1184,9 @@ element_type jsonP_json::get_next_array_element(char *path, char *delim, const v
 }
 
 
-unsigned int jsonP_json::get_meta_slot(unsigned int start, bool & is_ext, element_type container_type)
+unsigned long jsonP_json::get_meta_slot(unsigned long start, bool &is_ext, element_type container_type)
 {
-	unsigned int num_keys = get_key_count(meta_data, start);
+	unsigned long num_keys = get_key_count(meta_data, start);
 	start += obj_root_sz;
 	is_ext = false;
 	
@@ -1273,9 +1273,9 @@ char* jsonP_json::stringify()
 {
 	element_type type = get_element_type(meta_data, doc_root);
 //	std::cout << "\n\nDOC Type: " << type << "\n\n";
-	unsigned int len = data_length/4;
-	unsigned int i = 0;
-	unsigned int meta_i = doc_root + obj_member_sz;
+	unsigned long len = data_length/4;
+	unsigned long i = 0;
+	unsigned long meta_i = doc_root + obj_member_sz;
 
 	char *txt = (char*)malloc(len);
 	
@@ -1291,18 +1291,18 @@ char* jsonP_json::stringify()
 }
 
 
-void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned int &i, char *& txt)
+void jsonP_json::parse_object(unsigned long &len, unsigned long &meta_i, unsigned long &i, char *& txt)
 {
-	unsigned int k_cnt = get_key_count(meta_data, meta_i);
+	unsigned long k_cnt = get_key_count(meta_data, meta_i);
 	meta_i += obj_root_sz;
 	txt[i++] = '{';
-//	std::cout << "\n\nparse_object key count: " << k_cnt << ", meta_i" << meta_i << std::endl;
-	unsigned int loc;
-	unsigned int k_loc;
+//	std::cout << "\n\nparse_object key count: " << k_cnt << ", meta_i: " << meta_i << std::endl;
+	unsigned long loc;
+	unsigned long k_loc;
 	size_t k_len;
 	size_t v_len;
 	element_type type;
-	int j=0;
+	long j=0;
 	bool keep_going = true;
 //	object_id ext_loc = *(unsigned int*)&meta_data[meta_i + (k_cnt * obj_member_sz) + obj_member_key_offx];	//assign ext value
 	object_id ext_loc = get_key_location(meta_data, meta_i + (k_cnt * obj_member_sz));
@@ -1390,12 +1390,12 @@ void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned 
 			txt[i++] = 's';
 			txt[i++] = 'e';
 		} else if (type == object_ptr) {
-			loc += 4;
+			loc += sizeof(object_id);
 			parse_object(len, loc, i, txt);
 		} else if (type == object) {
 			//do nothing should never happen
 		} else if (type == array_ptr) {
-			loc += 4;
+			loc += sizeof(object_id);
 			parse_array(len, loc, i, txt);
 		} else if (type == null) {
 			txt[i++] = 'n';
@@ -1411,14 +1411,14 @@ void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned 
 }
 
 
-void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned int &i, char *& txt)
+void jsonP_json::parse_array(unsigned long &len, unsigned long &meta_i, unsigned long &i, char *& txt)
 {
-	unsigned int num_elements = get_key_count(meta_data, meta_i); 
+	unsigned long num_elements = get_key_count(meta_data, meta_i); 
 	meta_i += arry_root_sz;
 	size_t v_len;
-	unsigned int v_loc;
+	unsigned long v_loc;
 	element_type type; 
-	int k=0;
+	long k=0;
 	bool keep_going = true;
 //	object_id ext_loc = *(unsigned int*)&meta_data[meta_i + (num_elements * arry_member_sz) + arry_member_val_offx];	//assign ext value
 	object_id ext_loc = get_val_location(meta_data, meta_i + (num_elements * arry_member_sz));
@@ -1489,12 +1489,12 @@ void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned i
 			txt[i++] = 's';
 			txt[i++] = 'e';
 		} else if (type == object_ptr) {
-			v_loc += 4;
+			v_loc += sizeof(object_id);
 			parse_object(len, v_loc, i, txt);
 		} else if (type == object) {
 			//nothing - should never happen
 		} else if (type == array_ptr) {
-			v_loc += 4;
+			v_loc += sizeof(object_id);
 			parse_array(len, v_loc, i, txt);
 		} else if (type == null) {
 			txt[i++] = 'n';
@@ -1512,11 +1512,11 @@ void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned i
 
 char* jsonP_json::stringify_pretty()
 {
-	char *raw = stringify();
+	char *raw = stringify(); 
 	size_t raw_len = strlen(raw);
-	unsigned int sz = (unsigned int)strlen(raw) * 1.2;
+	unsigned long sz = (unsigned long)strlen(raw) * 1.2;
 	char *pretty = (char*)malloc(sz);
-	unsigned int pretty_i = 0;
+	unsigned long pretty_i = 0;
 	
 	bool indent{false};
 	bool parsing_value{false};
@@ -1528,7 +1528,7 @@ char* jsonP_json::stringify_pretty()
 		if (raw[i] == '"') {
 			
 			if (parsing_value) {
-				int j{1}, k{2};
+				long j{1}, k{2};
 				
 				while (raw[i-j] == '\\') {
 					j++;

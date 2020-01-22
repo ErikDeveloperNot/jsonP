@@ -13,9 +13,9 @@ private:
 	
 	
 	char *cur_path;
-	unsigned int cur_path_sz;
-	unsigned int cur_path_l;
-	unsigned int cur_key_i;
+	unsigned long cur_path_sz;
+	unsigned long cur_path_l;
+	unsigned long cur_key_i;
 	char slash[3] = {"/\0"};
 	char sprintf_buf[30];
 
@@ -23,12 +23,12 @@ private:
 	bool parsing_started;
 	
 	bool parsing_array;
-	unsigned int array_i;
+	unsigned long array_i;
 	
 	
 	inline void path_add(const char *key)
 	{
-		unsigned int len = strlen(key);
+		unsigned long len = strlen(key);
 		cur_path_l += len + 1;
 		
 		if (cur_path_l + 5 > cur_path_sz) {
@@ -41,7 +41,7 @@ private:
 		cur_path = strcat(cur_path, key);
 	}
 	
-	inline void path_remove(unsigned int idx)
+	inline void path_remove(unsigned long idx)
 	{
 		cur_path_l = idx;
 		cur_path[cur_path_l] = '\0';
@@ -49,8 +49,8 @@ private:
 	
 	//overrides
 	virtual void parse_key() override;
-	virtual unsigned int parse_array() override;
-	virtual unsigned int parse_object() override;
+	virtual unsigned long parse_array() override;
+	virtual unsigned long parse_object() override;
 	virtual void parse_value() override;
 	
 	

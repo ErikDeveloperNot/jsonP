@@ -27,7 +27,7 @@ options{options}
 }
 
 
-jsonP_parser::jsonP_parser(char * json_, unsigned int length, unsigned short options) : 
+jsonP_parser::jsonP_parser(char * json_, unsigned long length, unsigned short options) : 
 json{json_}, 
 json_length{length}, 
 look_for_key{false},
@@ -77,7 +77,7 @@ jsonP_json * jsonP_parser::parse(std::string & json_)
 }
 
 
-jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
+jsonP_json * jsonP_parser::parse(char * json_, unsigned long length)
 {
 	json = json_;
 	json_length = length;
@@ -99,7 +99,7 @@ jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
 		data[data_i+4] = '\0';
 		data_i = 5;
 
-		unsigned int i = parse_object();
+		unsigned long i = parse_object();
 		
 		if (shrink_buffers) {
 //			std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
@@ -130,7 +130,7 @@ jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
 		data[data_i+4] = '\0';
 		data_i = 5;
 
-		unsigned int i = parse_array();
+		unsigned long i = parse_array();
 	
 		if (shrink_buffers) {
 //			std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
@@ -159,7 +159,7 @@ jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
 void jsonP_parser::parse_key()
 {
 	index++;
-unsigned int start = index;	
+unsigned long start = index;	
 
 	while (true) {
 //		if (json[index] == '\\') {
@@ -224,7 +224,7 @@ unsigned int start = index;
 		} else {
 			if (increase_data_buffer(index - start + 5)) {
 //				std::cout << "increasing the data buffer" << std::endl;
-				data_sz = (unsigned int)data_sz * 1.2 + index - start;
+				data_sz = (unsigned long)data_sz * 1.2 + index - start;
 				data = (byte*) realloc(data, data_sz);
 				stats.data_increases++;
 			}
@@ -237,7 +237,7 @@ unsigned int start = index;
 	} else if (!use_json) {
 		if (increase_data_buffer(index - start + 5)) {
 //			std::cout << "increasing the data buffer" << std::endl;
-			data_sz = (unsigned int)data_sz * 1.2 + index - start;
+			data_sz = (unsigned long)data_sz * 1.2 + index - start;
 			data = (byte*) realloc(data, data_sz);
 			stats.data_increases++;
 		}
@@ -259,7 +259,7 @@ element_type jsonP_parser::parse_numeric()
 	bool exp_sign{false};
 	bool dec{true};
 
-	unsigned int s = index-1;
+	unsigned long s = index-1;
 
 //	while (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != ',' && c != ']' && c != '}') {
 	while (c != space && c != tab && c != new_line && c != car_return && c != comma_int && c != rt_brac && c != rt_curly) {
@@ -302,7 +302,7 @@ element_type jsonP_parser::parse_numeric()
 		json[value_start] = '\0';
 	} else {
 		if (index+1 - s >= data_sz - data_i) {
-			data_sz = (unsigned int)data_sz * 1.2 + index - s;
+			data_sz = (unsigned long)data_sz * 1.2 + index - s;
 			data = (byte*) realloc(data, data_sz);
 			stats.data_increases++;
 		}
@@ -417,12 +417,12 @@ void jsonP_parser::parse_value()
 
 
 
-unsigned int jsonP_parser::parse_array()
+unsigned long jsonP_parser::parse_array()
 {
 	// create local index for this obj record and advace global index
-	unsigned int loc_stack_i = stack_i; // - obj_member_sz;
-	unsigned int num_elements = 0;
-	unsigned int to_return;	//most likely will need
+	unsigned long loc_stack_i = stack_i; // - obj_member_sz;
+	unsigned long num_elements = 0;
+	unsigned long to_return;	//most likely will need
 	//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
 //	*((element_type*)&stack_buf[loc_stack_i]) = array;
 	set_element_type(stack_buf, loc_stack_i, array);
@@ -455,7 +455,7 @@ unsigned int jsonP_parser::parse_array()
 
 		if (increase_data_buffer(stack_i - loc_stack_i + arry_member_sz)) {
 //			std::cout << "increasing the data buffer" << std::endl;
-			data_sz = (unsigned int)data_sz * 1.2 + stack_i - loc_stack_i;
+			data_sz = (unsigned long)data_sz * 1.2 + stack_i - loc_stack_i;
 			data = (byte*) realloc(data, data_sz);
 		}
 
@@ -484,7 +484,7 @@ unsigned int jsonP_parser::parse_array()
 
 		if (increase_stack_buffer()) {
 //			std::cout << "old stack_buf_sz: " << stack_buf_sz;
-			stack_buf_sz = (unsigned int) stack_buf_sz * 1.2;
+			stack_buf_sz = (unsigned long) stack_buf_sz * 1.2;
 //			std::cout << ", new stack_buf_sz: " << stack_buf_sz << std::endl;
 			stack_buf = (byte*) realloc(stack_buf, stack_buf_sz);
 			stats.stack_buf_increases++;
@@ -537,7 +537,7 @@ unsigned int jsonP_parser::parse_array()
 
 	if (increase_data_buffer(stack_i - loc_stack_i + arry_member_sz)) { 
 //		std::cout << "increasing the data buffer" << std::endl;
-		data_sz = (unsigned int) data_sz * 1.2 + stack_i - loc_stack_i;
+		data_sz = (unsigned long) data_sz * 1.2 + stack_i - loc_stack_i;
 		data = (byte*) realloc(data, data_sz);
 		stats.data_increases++;
 	}
@@ -557,12 +557,12 @@ unsigned int jsonP_parser::parse_array()
 }
 
 
-unsigned int jsonP_parser::parse_object()
+unsigned long jsonP_parser::parse_object()
 {
 	// create local index for this obj record and advace global index
-	unsigned int loc_stack_i = stack_i; // - obj_member_sz;
-	unsigned int num_keys = 0;
-	unsigned int to_return;
+	unsigned long loc_stack_i = stack_i; // - obj_member_sz;
+	unsigned long num_keys = 0;
+	unsigned long to_return;
 	//std::cout << "Addess: " << &*((char**)&stack_buf[loc_stack_i - obj_member_sz + obj_member_key_offx]) << std::endl;
 //	*((element_type*)&stack_buf[loc_stack_i]) = object;
 	set_element_type(stack_buf, loc_stack_i, object);
@@ -612,7 +612,7 @@ unsigned int jsonP_parser::parse_object()
 				stack_i += obj_member_sz;
 
 				if (increase_data_buffer(stack_i - loc_stack_i + obj_member_sz)) {
-					data_sz = (unsigned int) data_sz * 1.2 + stack_i - loc_stack_i;
+					data_sz = (unsigned long) data_sz * 1.2 + stack_i - loc_stack_i;
 					data = (byte*) realloc(data, data_sz);
 					stats.data_increases++;
 				}
