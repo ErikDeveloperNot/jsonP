@@ -73,19 +73,19 @@ void jsonP_push_parser::parse_key()
 }
 
 
-unsigned long jsonP_push_parser::parse_array()
+unsigned int jsonP_push_parser::parse_array()
 {
-	unsigned long start_key_i = cur_key_i;
+	unsigned int start_key_i = cur_key_i;
 	bool reset_index = parsing ? false : true;
-	unsigned long start_stack_i = stack_i;
+	unsigned int start_stack_i = stack_i;
 	
 	bool start_parsing_array = parsing_array;
-	unsigned long start_array_i = array_i;
+	unsigned int start_array_i = array_i;
 	
 	parsing_array = true;
 	array_i = 0;
 	
-	unsigned long to_return = jsonP_buffer_parser::parse_array();
+	unsigned int to_return = jsonP_buffer_parser::parse_array();
 	
 	if (reset_index) {
 //std::cout << "resetting stack index from: " << stack_i << " to " << start_stack_i << std::endl;
@@ -99,20 +99,20 @@ unsigned long jsonP_push_parser::parse_array()
 }
 
 
-unsigned long jsonP_push_parser::parse_object()
+unsigned int jsonP_push_parser::parse_object()
 {
-	unsigned long start_path_l = cur_path_l;
-	unsigned long start_key_i = cur_key_i;
+	unsigned int start_path_l = cur_path_l;
+	unsigned int start_key_i = cur_key_i;
 
 	bool reset_index = parsing ? false : true;
-	unsigned long start_stack_i = stack_i;
+	unsigned int start_stack_i = stack_i;
 	
 	bool start_parsing_array = parsing_array;
-	unsigned long start_array_i = array_i;
+	unsigned int start_array_i = array_i;
 	
 	parsing_array = false;
 	
-	unsigned long to_return = jsonP_buffer_parser::parse_object();
+	unsigned int to_return = jsonP_buffer_parser::parse_object();
 		
 	if (!start_parsing_array) { 
 		if (start_key_i < cur_path_l)
@@ -133,15 +133,15 @@ unsigned long jsonP_push_parser::parse_object()
 
 void jsonP_push_parser::parse_value()
 {
-	unsigned long start_key_i = cur_key_i;
-	unsigned long start_path_l = cur_path_l;
-	unsigned long array_key_i;
+	unsigned int start_key_i = cur_key_i;
+	unsigned int start_path_l = cur_path_l;
+	unsigned int array_key_i;
 	
 	bool reset_index = parsing ? false : true;
-	unsigned long start_data_i = data_i;
-	unsigned long start_stack_i = stack_i;
+	unsigned int start_data_i = data_i;
+	unsigned int start_stack_i = stack_i;
 	bool start_parsing_array = parsing_array;
-	unsigned long start_array_i = array_i;
+	unsigned int start_array_i = array_i;
 	
 	bool root_parse{false};
 	
@@ -151,7 +151,7 @@ void jsonP_push_parser::parse_value()
 		parsing_started = true;
 	} else if (parsing_array) {
 		array_key_i = cur_path_l;		
-		sprintf(sprintf_buf, "%lu",array_i);
+		sprintf(sprintf_buf, "%u",array_i);
 		path_add(sprintf_buf);
 		
 		if (!parsing && handler->get_element(cur_path)) {
@@ -168,7 +168,7 @@ void jsonP_push_parser::parse_value()
 	if (root_parse) {
 		element_type type = get_element_type(stack_buf, start_stack_i);
 	
-		unsigned long k_loc = get_key_location(stack_buf, start_stack_i);
+		unsigned int k_loc = get_key_location(stack_buf, start_stack_i);
 		size_t k_len = strlen(&data[k_loc]);
 		
 		if (type == string) {
@@ -177,7 +177,7 @@ void jsonP_push_parser::parse_value()
 			else
 				handler->element_parsed(cur_path, type, (const void*) &data[k_loc]);
 		} else if (type == numeric_long) {
-			long value;
+			int value;
 			
 			if (!start_parsing_array) {
 				value = atol(&data[k_loc + k_len + 1]);
