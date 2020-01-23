@@ -90,7 +90,9 @@ protected:
 	bool use_json;
 	bool shrink_buffers;
 	bool dont_sort_keys;
+	bool convert_numerics;
 
+	void *numeric_buf = NULL;
 	parse_stats stats;
 	// END STUFF for new modle to rid std::map and std::new for each element
 

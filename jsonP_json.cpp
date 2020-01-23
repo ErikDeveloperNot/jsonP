@@ -30,6 +30,7 @@ get_next_array_id{0}
 	get_next_array_buf = (void*) malloc(sizeof(double) * 2);
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
 	weak_ref = (options & WEAK_REF) ? true : false;
+	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
 }
 
 
@@ -86,6 +87,7 @@ get_next_array_id{0}
 	get_next_array_buf = (void*) malloc(sizeof(double) * 2);
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
 	weak_ref = (options & WEAK_REF) ? true : false;
+	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
 }
 
 
@@ -126,7 +128,7 @@ weak_ref{false}
 
 jsonP_json::~jsonP_json()
 {
-	std::cout << ">>>>>>>>>>  jsonP_json destruct <<<<<<<<<<<" << std::endl;
+	std::cout << ">>>>>>>>>>  jsonP_json destruct <<<<<<<<<<<, convert: " << convert_numerics << std::endl;
 //	printf("&data: %p, data: %p\n", &data, data);
 //	printf("&meta_data: %p, meta_data: %p\n", &meta_data, meta_data);
 	free(get_next_array_buf);
@@ -1302,7 +1304,7 @@ void jsonP_json::parse_object(unsigned long &len, unsigned long &meta_i, unsigne
 	size_t k_len;
 	size_t v_len;
 	element_type type;
-	long j=0;
+	unsigned long j=0;
 	bool keep_going = true;
 //	object_id ext_loc = *(unsigned int*)&meta_data[meta_i + (k_cnt * obj_member_sz) + obj_member_key_offx];	//assign ext value
 	object_id ext_loc = get_key_location(meta_data, meta_i + (k_cnt * obj_member_sz));
@@ -1333,11 +1335,11 @@ void jsonP_json::parse_object(unsigned long &len, unsigned long &meta_i, unsigne
 		if (j != 0)
 			txt[i++] = ',';
 		
-//		std::cout << "type of ele: " << type << ", meta_i: " << meta_i << std::endl;
+		std::cout << "type of ele: " << type << ", meta_i: " << meta_i << std::endl;
 		loc = get_key_location(meta_data, meta_i);
 		k_loc = loc;
 		meta_i += obj_member_sz;
-//		std::cout << "k_loc: " << k_loc << std::endl;		
+		std::cout << "k_loc: " << k_loc << std::endl;		
 
 		if (type == object_ptr || type == array_ptr) {
 			k_loc = get_uint_a_indx(meta_data, loc);
@@ -1365,6 +1367,16 @@ void jsonP_json::parse_object(unsigned long &len, unsigned long &meta_i, unsigne
 			len = increase_txt_buffer(v_len, len, i, txt);
 			memcpy(&txt[i], &data[k_loc + k_len + 1], v_len);
 			i+=v_len;
+		} else if (type == numeric_long_cvt) {
+			len = increase_txt_buffer(sizeof(long), len, i, txt);
+			i += sprintf(&txt[i], "%ld", *(long*)&data[k_loc + k_len + 1]);
+//			memcpy(&txt[i], &data[k_loc + k_len + 1], v_len);
+//			i+=v_len;
+		} else if (type == numeric_double_cvt) {
+			len = increase_txt_buffer(sizeof(double), len, i, txt);
+			i += sprintf(&txt[i], "%lf", *(double*)&data[k_loc + k_len + 1]);
+//			memcpy(&txt[i], &data[k_loc + k_len + 1], v_len);
+//			i+=v_len;
 		} else if (type == boolean) {
 			if (data[k_loc + k_len + 1] == '1') {
 				txt[i++] = 't';
@@ -1464,6 +1476,16 @@ void jsonP_json::parse_array(unsigned long &len, unsigned long &meta_i, unsigned
 			len = increase_txt_buffer(v_len, len, i, txt);
 			memcpy(&txt[i], &data[v_loc], v_len);
 			i+=v_len;
+		} else if (type == numeric_long_cvt) {
+			len = increase_txt_buffer(sizeof(long), len, i, txt);
+			i += sprintf(&txt[i], "%ld", *(long*)&data[v_loc + 1]);
+//			memcpy(&txt[i], &data[k_loc + k_len + 1], v_len);
+//			i+=v_len;
+		} else if (type == numeric_double_cvt) {
+			len = increase_txt_buffer(sizeof(double), len, i, txt);
+			i += sprintf(&txt[i], "%lf", *(double*)&data[v_loc + 1]);
+//			memcpy(&txt[i], &data[k_loc + k_len + 1], v_len);
+//			i+=v_len;
 		} else if (type == boolean) {
 			if (data[v_loc] == '1') {
 				txt[i++] = 't';

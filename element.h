@@ -30,13 +30,14 @@
 #define SHRINK_BUFS				PRESERVE_JSON << 1
 #define DONT_SORT_KEYS				PRESERVE_JSON << 2
 #define WEAK_REF					PRESERVE_JSON << 3
+#define CONVERT_NUMERICS			PRESERVE_JSON << 4
 
 
 typedef char byte;
 
 enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, 
 								array_ptr=6, array=7, boolean=8, null=9, extended=10, empty=11, bool_true=12, 
-								bool_false=13, search=14, invalid=15};
+								bool_false=13, search=14, invalid=15, numeric_long_cvt=16, numeric_double_cvt=17};
 
 static const size_t element_type_sz = 1;
 static const size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned long);
@@ -64,10 +65,10 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 	unsigned long lft;
 	unsigned long rt;
 //	byte * text = (use_json) ? json : data;
-static unsigned int cnt{0};
+
 	std::sort((obj_member*)start, (obj_member*)end, [&](obj_member l, obj_member r) { 
 //		std::cout << "l type: " << *(element_type*)&l.b[0] << ", R type: " << *(element_type*)&r.b[0] << std::endl;
-cnt++;			
+		
 //		if (*(element_type*)&l.b[0] == empty)
 		if (get_element_type(l.b, 0) == empty)
 			return false;
@@ -93,7 +94,6 @@ cnt++;
 
 		return std::strcmp(data+lft, data+rt) < 0;
 	});
-std::cout << "\ncnt: " << cnt;
 }
 
 

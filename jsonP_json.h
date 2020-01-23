@@ -51,6 +51,7 @@ private:
 	//options
 	bool dont_sort_keys;
 	bool weak_ref;
+	bool convert_numerics;
 	
 	
 	object_id get_object_id(search_path_element *, unsigned int, bool);

@@ -13,6 +13,10 @@ options{options}
 	use_json = (options & PRESERVE_JSON) ? false : true;
 	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
+	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
+	
+	if (convert_numerics)
+		numeric_buf = malloc(sizeof(long));
 
 	// For now just make initial 100kb, will be configurable
 	stack_buf_sz = 1024;// * 10 * 10;
@@ -38,6 +42,10 @@ options{options}
 	use_json = (options & PRESERVE_JSON) ? false : true;
 	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
+	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
+	
+	if (convert_numerics)
+		numeric_buf = malloc(sizeof(long));
 
 //std::cout << "OPTIONS: " << options << ", (options & DONT_SORT_KEYS)=" << (options & DONT_SORT_KEYS) << std::endl;
 
@@ -58,7 +66,10 @@ jsonP_parser::~jsonP_parser()
 {
 	free(stack_buf);
 	
-	std::cout << "End jsonP_parser destructor" << std::endl;
+	if (convert_numerics)
+		free(numeric_buf);
+	
+	std::cout << "End jsonP_parser destructor, convert: " << convert_numerics << std::endl;
 }
 
 
@@ -293,7 +304,17 @@ element_type jsonP_parser::parse_numeric()
 		c = (int)json[++index];
 	}
 	
-	if (use_json) {
+	if (convert_numerics) {
+		char orig = json[index];
+		json[index] = '\0';
+		
+		if (is_long)
+			*(long*)&stack_buf[stack_i + element_type_sz] = atol(&json[value_start]);
+		else
+			*(double*)&stack_buf[stack_i + element_type_sz] = atof(&json[value_start]);
+			
+		json[index] = orig;
+	} else if (use_json) {
 		while (s < index-1) {
 			json[value_start++] = json[s+1];
 			s++;
@@ -382,13 +403,23 @@ void jsonP_parser::parse_value()
 			case numeric_long :
 			{
 //				*((element_type*)&stack_buf[stack_i]) = numeric_long;
-				set_element_type(stack_buf, stack_i, numeric_long);
+				if (convert_numerics) {
+					set_element_type(stack_buf, stack_i, numeric_long_cvt);
+//					memcpy(&stack_buf[stack_i + element_type_sz], numeric_buf, sizeof(long));
+				} else {
+					set_element_type(stack_buf, stack_i, numeric_long);
+				}
 				break;
 			}
 			case numeric_double :
 			{
 //				*((element_type*)&stack_buf[stack_i]) = numeric_double;
-				set_element_type(stack_buf, stack_i, numeric_double);
+				if (convert_numerics) {
+					set_element_type(stack_buf, stack_i, numeric_double_cvt);
+//					memcpy(&stack_buf[stack_i + element_type_sz], numeric_buf, sizeof(long));
+				} else {
+					set_element_type(stack_buf, stack_i, numeric_double);
+				}
 				break;
 			}
 			default :
