@@ -114,6 +114,7 @@ protected:
 
 	virtual void parse_key();
 	virtual element_type parse_numeric();
+virtual element_type parse_numeric_cvt();
 	virtual unsigned int parse_array();
 	virtual unsigned int parse_object();
 	virtual void parse_value();

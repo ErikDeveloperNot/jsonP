@@ -14,13 +14,13 @@ options{options}
 	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
 	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
-printf("OPTIONS: %d\n", options);	
+//printf("OPTIONS: %d\n", options);	
 	if (convert_numerics) {
 		numeric_buf = malloc(sizeof(long));
 		use_json = false;
 		options |= PRESERVE_JSON;
 	}
-printf("OPTIONS: %d\n", options);
+//printf("OPTIONS: %d\n", options);
 	// For now just make initial 100kb, will be configurable
 	stack_buf_sz = 1024;// * 10 * 10;
 	stack_buf = (byte*) malloc(stack_buf_sz);
@@ -46,13 +46,13 @@ options{options}
 	shrink_buffers = (options & SHRINK_BUFS) ? true : false;
 	dont_sort_keys = (options & DONT_SORT_KEYS) ? true : false;
 	convert_numerics = (options & CONVERT_NUMERICS) ? true : false;
-printf("OPTIONS: %d\n", options);
+//printf("OPTIONS: %d\n", options);
 	if (convert_numerics) {
 		numeric_buf = malloc(sizeof(long));
 		use_json = false;
 		options |= PRESERVE_JSON;
 	}
-printf("OPTIONS: %d\n", options);
+//printf("OPTIONS: %d\n", options);
 //std::cout << "OPTIONS: " << options << ", (options & DONT_SORT_KEYS)=" << (options & DONT_SORT_KEYS) << std::endl;
 
 	stack_buf_sz = 1024;// * 10 * 10;
@@ -75,7 +75,7 @@ jsonP_parser::~jsonP_parser()
 	if (convert_numerics)
 		free(numeric_buf);
 	
-	std::cout << "End jsonP_parser destructor, convert: " << convert_numerics << std::endl;
+//	std::cout << "End jsonP_parser destructor, convert: " << convert_numerics << std::endl;
 }
 
 
@@ -117,7 +117,7 @@ jsonP_json * jsonP_parser::parse(char * json_, unsigned int length)
 		data_i = 5;
 
 		unsigned int i = parse_object();
-		
+
 		if (shrink_buffers) {
 //			std::cout << "shrinking data from: " << data_sz << ", to: " << data_i << std::endl;
 			data = (byte*)realloc(data, data_i);
@@ -320,6 +320,7 @@ element_type jsonP_parser::parse_numeric()
 		json[value_start] = '\0';
 	} else {
 		if (convert_numerics) {
+			/* this block should not run anymore, parse_numeric_cvt is used instead */
 			if (sizeof(long) + 2 >= data_sz - data_i) {
 				data_sz = (unsigned int)data_sz * 1.2 + sizeof(long);
 				data = (byte*) realloc(data, data_sz);
@@ -328,15 +329,13 @@ element_type jsonP_parser::parse_numeric()
 			
 			char orig = json[index];
 			json[index] = '\0';
-std::cout << "parse_num: " << &json[s+1] << "\n";
+
 			if (is_long) {
 				*(long*)&data[data_i] = atol(&json[s+1]);
 				data_i += sizeof(long);
-std::cout << *(long*)&data[data_i-8] << "\n";
 			} else {
 				*(double*)&data[data_i] = atof(&json[s+1]);
 				data_i += sizeof(double);
-std::cout << *(double*)&data[data_i-8] << "\n";
 			}
 		
 			json[index] = orig;
@@ -362,6 +361,89 @@ std::cout << *(double*)&data[data_i-8] << "\n";
 	else
 		return numeric_double;
 
+}
+
+
+element_type jsonP_parser::parse_numeric_cvt()
+{
+	bool is_long{true};
+	int c = (int)json[index];
+	bool sign {true};
+	bool exp{false};
+	bool exp_sign{false};
+	bool dec{true};
+	double d = 0;
+	double multiplier = 10;
+	long mult = 1;
+	long exp_mult = 1;
+	int e = 0;
+
+	while (c != space && c != tab && c != new_line && c != car_return && c != comma_int && c != rt_brac && c != rt_curly) {
+//std::cout << "c: " << c << ", val: " << json[index] << " - " << (int)json[index] << std::endl;
+		if (c >= zero && c <= nine) {
+			exp_sign = false;
+			
+			if (multiplier == 10) {
+				d = d * multiplier + (c-48);
+			} else if (multiplier > 0){
+				d += multiplier * (c-48);
+				multiplier *= .1;
+			} else {
+				e = e * 10 + (c-48);
+			}
+		} else if ((c == ltr_e || c == ltr_E) && !exp) {
+			exp = true;
+			exp_sign = true;
+			dec = false;
+			is_long = false;
+			multiplier = -1;
+		} else if (c == period && dec) {
+			exp = false;
+			is_long = false;
+			multiplier = .1;
+		} else if ((c == minus || c == plus) && (sign || exp_sign)) {
+			if (c == '-') {
+				if (sign) 
+					mult = -1;
+				else 
+					exp_mult = -1;
+			} 
+
+			exp_sign = false;
+		} else {
+			std::string err = "parse error, trying to parse numeric cvt value at index: " + std::to_string(index);
+			std::cout << err << std::endl;
+		}
+		
+		sign = false;
+		c = (int)json[++index];
+	}
+		
+	if (e > 0) {
+		for (size_t i=0; i<e; i++, d *= ((exp_mult == 1) ? 10 : .1));
+	}
+	
+	if (sizeof(long) + 2 >= data_sz - data_i) {
+		data_sz = (unsigned int)data_sz * 1.2 + sizeof(long);
+		data = (byte*) realloc(data, data_sz);
+		stats.data_increases++;
+	}
+	
+	if (is_long) {
+		if (d <= LONG_MAX) {
+			*(long*)&data[data_i] = (long)(d * mult);
+			data_i += sizeof(long);
+			return numeric_long;
+		} else {
+			*(double*)&data[data_i] = d * mult;
+			data_i += sizeof(double);
+			return numeric_double;
+		}
+	} else {
+		*(double*)&data[data_i] = d * mult;
+		data_i += sizeof(double);
+		return numeric_double;
+	}
 }
 
 
@@ -412,8 +494,8 @@ void jsonP_parser::parse_value()
 //		std::string number;
 		int s = index;
 		
-//		switch (parse_numeric(number))//start, end)) 
-		switch (parse_numeric())
+//		switch (parse_numeric())//start, end)) 
+		switch ((convert_numerics) ? parse_numeric_cvt() : parse_numeric())
 		{
 			case numeric_int :
 			{
@@ -424,23 +506,27 @@ void jsonP_parser::parse_value()
 			case numeric_long :
 			{
 //				*((element_type*)&stack_buf[stack_i]) = numeric_long;
-				if (convert_numerics) {
+/*				if (convert_numerics) {
 					set_element_type(stack_buf, stack_i, numeric_long_cvt);
 //					memcpy(&stack_buf[stack_i + element_type_sz], numeric_buf, sizeof(long));
 				} else {
 					set_element_type(stack_buf, stack_i, numeric_long);
 				}
+*/				
+				set_element_type(stack_buf, stack_i, numeric_long);
 				break;
 			}
 			case numeric_double :
 			{
 //				*((element_type*)&stack_buf[stack_i]) = numeric_double;
-				if (convert_numerics) {
+/*				if (convert_numerics) {
 					set_element_type(stack_buf, stack_i, numeric_double_cvt);
 //					memcpy(&stack_buf[stack_i + element_type_sz], numeric_buf, sizeof(long));
 				} else {
 					set_element_type(stack_buf, stack_i, numeric_double);
 				}
+*/
+				set_element_type(stack_buf, stack_i, numeric_double);
 				break;
 			}
 			default :

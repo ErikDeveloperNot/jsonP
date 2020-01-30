@@ -37,7 +37,7 @@ typedef char byte;
 
 enum element_type : u_int8_t {object_ptr=0, object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, 
 								array_ptr=6, array=7, boolean=8, null=9, extended=10, empty=11, bool_true=12, 
-								bool_false=13, search=14, invalid=15, numeric_long_cvt=16, numeric_double_cvt=17};
+								bool_false=13, search=14, invalid=15/*, numeric_long_cvt=16, numeric_double_cvt=17*/};
 
 static const size_t element_type_sz = 1;
 static const size_t obj_member_sz = sizeof(element_type) + sizeof(unsigned int);
@@ -98,7 +98,7 @@ static void sort_keys(void *start, void *end, byte *meta, byte *data)
 
 
 
-static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+static unsigned int search_keys(const char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
 									bool ret_ptr, bool dont_sort_keys)
 {
 //std::cout << "key: " << key << ", start: " << start << ", end: " << end << ", dont_sort: " << dont_sort_keys << std::endl;
@@ -195,7 +195,7 @@ static unsigned int search_keys(char *key, unsigned int start, unsigned int end,
 }
 
 
-static unsigned int search_keys(char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
+static unsigned int search_keys(const char *key, unsigned int start, unsigned int end, byte *meta, byte *data, 
 									bool ret_ptr)
 {
 	return search_keys(key, start, end, meta, data, ret_ptr, false);
@@ -212,12 +212,12 @@ static std::string get_element_type_string(element_type type)
 		case string:
 			return "string";
 		case numeric_long:
-		case numeric_long_cvt:
+//		case numeric_long_cvt:
 			return "numeric long";
 		case numeric_int:
 			return "numeric int";
 		case numeric_double:
-		case numeric_double_cvt:
+//		case numeric_double_cvt:
 			return "numeric double";
 		case array_ptr:
 			return "array pointer";
