@@ -1,6 +1,6 @@
 #include "jsonP_parser.h"
-//#include <chrono>
 
+#include <climits>
 
 
 jsonP_parser::jsonP_parser(std::string & json_, unsigned short options) : 
@@ -444,6 +444,8 @@ element_type jsonP_parser::parse_numeric_cvt()
 		data_i += sizeof(double);
 		return numeric_double;
 	}
+	
+	return numeric_double;		//should never reach, remove compiler warnings
 }
 
 

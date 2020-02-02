@@ -311,8 +311,6 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 			if (indx == 0 && tok[0] != '0')			//invalid value return
 				return 0;
 				
-//num_keys = get_key_count(meta_data, start);
-			
 			if (indx < num_keys) {
 				if (get_element_type(meta_data, start + (indx * obj_member_sz)) != empty)
 					result = start + (indx * obj_member_sz);
@@ -336,9 +334,6 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 				}
 			}
 		} else {
-//			if (i+1 == path_count) {
-//num_keys = get_key_count(meta_data, start);
-//std::cout << "start: " << start << ", num_keys: " << num_keys << std::endl;
 			if (next_tok == NULL) {
 				if (ret_ptr)
 					result = search_keys(tok, start, (start + (num_keys * obj_member_sz) - obj_member_sz), meta_data, data, true, dont_sort_keys);
@@ -353,13 +348,10 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 //std::cout << "<<< retult: " << result << "<<<<type: " << type << ", ret_ptr: " << ret_ptr << std::endl;
 		
 		if (result > 0) {
-//			i++;
-//			std::cout << "bsearh type: " << type << ", i=" << i << ", path_count=" << path_count << std::endl;
 			
 			if (type ==  object) { // && i < path_count) {
 				is_array_indx = false;
 				
-//				if (i == path_count) {
 				if (next_tok == NULL) {
 					return result;
 				} else {
@@ -369,7 +361,6 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 					start += obj_root_sz;
 				}
 			} else if (type ==  array) { //_ptr && i < path_count) {
-//				if (i == path_count) {
 				if (next_tok == NULL) {
 					return result;
 				} else {
@@ -387,10 +378,6 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 					result -= element_type_sz;
 				}
 
-//type = get_element_type(meta_data, result);
-//std::cout << "PTR type 2: " << type << ", result: " << result << std::endl;
-
-//				if (i == path_count) {
 				if (next_tok == NULL) {
 					return result;
 				} else {
@@ -399,11 +386,9 @@ object_id jsonP_json::get_object_id(char *path, const char *delim, bool ret_ptr,
 					num_keys = get_key_count(meta_data, start);
 					start += obj_root_sz;
 				}
-//			} else if (i < path_count) {
 			} else if (next_tok != NULL) {
 				//error trying to get a node below a leaf node
 				return 0;
-//			} else if (i == path_count) {
 			} else if (next_tok == NULL) {
 				return result;
 			}
@@ -448,41 +433,31 @@ object_id jsonP_json::add_container(const char* key, unsigned int num_keys, obje
 	
 	//start to create the new object block and set key to th data location from previous step
 	*meta_length_ptr = increase_meta_buffer((5 + num_keys) * obj_member_sz, *meta_length_ptr, *meta_i_ptr);
-//	*(element_type*)&meta_data[*meta_i_ptr] = container_type;
 	set_element_type(meta_data, *meta_i_ptr, container_type);
 
 	if (parent_type == object)
-//		*(unsigned int*)&meta_data[*meta_i_ptr + obj_member_key_offx] = key_loc;
 		set_key_offx_value(meta_data, *meta_i_ptr, key_loc);
 
 	object_id id_to_return = *meta_i_ptr;
 	
 	//assign the parent object key a type of pointer and point to the start of the new block
 	if (container_type == object)
-//		*(element_type*)&meta_data[meta_slot] = object_ptr;
 		set_element_type(meta_data, meta_slot, object_ptr);
 	else
-//		*(element_type*)&meta_data[meta_slot] = array_ptr;
 		set_element_type(meta_data, meta_slot, array_ptr);
 
-//	*(unsigned int*)&meta_data[meta_slot + obj_member_key_offx] = *meta_i_ptr+1;
 	set_key_offx_value(meta_data, meta_slot, *meta_i_ptr+1);
-	
 	*meta_i_ptr += obj_member_sz;
 	
 	//set number of keys for new object or num elements for an array
-//	*(unsigned int*)&meta_data[*meta_i_ptr] = num_keys;
 	set_uint_a_indx(meta_data, *meta_i_ptr, num_keys);
 	*meta_i_ptr += obj_root_sz;
 	
 	for (size_t i=0; i<num_keys; i++, *meta_i_ptr += obj_member_sz) {
-//		*(element_type*)&meta_data[*meta_i_ptr] = empty;
 		set_element_type(meta_data, *meta_i_ptr, empty);
 	}
 	
-//	*(element_type*)&meta_data[*meta_i_ptr] = extended;
 	set_element_type(meta_data, *meta_i_ptr, extended);
-//	*(unsigned int*)&meta_data[*meta_i_ptr + obj_member_key_offx] = 0;
 	set_key_offx_value(meta_data, *meta_i_ptr, 0);
 	*meta_i_ptr += obj_member_sz;
 
@@ -595,7 +570,7 @@ int jsonP_json::update_value(object_id id, index_type container_type, element_ty
 		v = (char*)value;
 		set_element_type(meta_data, id, string);
 		len = strlen(v) + 1;
-	} else if (type == numeric_double) { // || type == numeric_double_cvt) {
+	} else if (type == numeric_double) { 
 		if (!convert_numerics) {
 			sprintf(temp, "%lf", *((double*)value));
 			v = temp;
@@ -607,7 +582,7 @@ int jsonP_json::update_value(object_id id, index_type container_type, element_ty
 			set_element_type(meta_data, id , numeric_double);
 			orig_vsize = sizeof(double);
 		}
-	} else if (type == numeric_long) { // || type == numeric_long_cvt) {
+	} else if (type == numeric_long) { 
 		if (!convert_numerics) {
 			sprintf(temp, "%ld", *(long*)value);
 			v = (char*)temp;
@@ -622,11 +597,6 @@ int jsonP_json::update_value(object_id id, index_type container_type, element_ty
 	} else {
 		return -2;
 	}
-	
-//	size_t orig_vsize = 0;
-//	
-//	if (orig_type == numeric_double_cvt || orig_type == numeric_long_cvt)
-//		orig_vsize = sizeof(double);
 	
 	if (container_type == object_key) {
 		unsigned int k_loc = get_key_location(meta_data, id);
@@ -738,8 +708,6 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 
 			unsigned int temp = *(object_id*)&meta_data[*(object_id*)&meta_data[first_ext + obj_member_key_offx] + obj_member_ext_next_offx];
 
-//			std::cout << "temp: " << temp << std::endl;
-
 			memcpy(&meta_data[first_ext + obj_member_key_offx],
 				&temp, obj_root_sz);
 			
@@ -761,7 +729,6 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 			}
 		}
 		
-//		if (num_keys > 0 && *(element_type*)&meta_data[parent_container] == object) {
 		if (num_keys > 0 && get_element_type(meta_data, parent_container) == object && !dont_sort_keys) {
 			parent_container += (obj_member_sz + obj_root_sz);
 			sort_keys(&meta_data[parent_container], &meta_data[parent_container + (num_keys * obj_member_sz)], 
@@ -770,21 +737,17 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 		
 	} else {
 		// element to delete is part of ext linked list
-//		object_id ids_next = *(object_id*)&meta_data[id + obj_member_ext_next_offx];
 		object_id ids_next = get_ext_next(meta_data, id);
 
 		if (ids_next > 0) {
 			//not the end of the list, no need to transverse
 			memcpy(&meta_data[id], &meta_data[ids_next], obj_member_ext_sz);
 		} else {
-//			object_id end = *(object_id*)&meta_data[first_ext + obj_member_key_offx];
 			object_id end = get_uint_a_indx(meta_data, first_ext + obj_member_key_offx);
 			object_id prior = end;
 
-//			while (end != id && *(object_id*)&meta_data[end + obj_member_ext_next_offx] > 0) {
 			while (end != id && get_ext_next(meta_data, end) > 0) {
 				prior = end;
-//				end = *(object_id*)&meta_data[end + obj_member_ext_next_offx];
 				end = get_uint_a_indx(meta_data, end + obj_member_ext_next_offx);
 			}
 			
@@ -806,7 +769,6 @@ element_type jsonP_json::get_value(object_id id, index_type parent_type, const c
 	}
 	
 	element_type type = get_element_type(meta_data, id);
-//	unsigned int start = get_key_location(meta_data, id + element_type_sz);;
 	unsigned int start = get_key_location(meta_data, id);
 	
 	if (parent_type == object_key) {
@@ -817,10 +779,6 @@ element_type jsonP_json::get_value(object_id id, index_type parent_type, const c
 	
 	if (type == string || type == numeric_double || type == numeric_long || type == boolean) 
 		value = (const char*)&data[start];
-//	else if (type == numeric_double_cvt)
-//		value = (const char*)&data[start];
-//	else if (type == numeric_long_cvt)
-//		value = (const char*)&data[start];
 	
 	return type;
 }
@@ -1104,16 +1062,13 @@ unsigned int jsonP_json::get_keys(object_id id, struct object_key *&keys)
 		keys[i].type = get_element_type(meta_data, id);
 		
 		if (keys[i].type == object_ptr || keys[i].type == array_ptr) {
-//			keys[i++].key = data + get_key_location(meta_data, get_key_location(meta_data, id + obj_member_key_offx));
 			keys[i++].key = data + get_uint_a_indx(meta_data, get_key_location(meta_data, id));
 		} else {
-//			keys[i++].key = data + get_key_location(meta_data, id + obj_member_key_offx);
 			keys[i++].key = data + get_key_location(meta_data, id);
 		}
 		id += obj_member_sz;
 	}
 	
-//	if (i < key_cnt) {
 	if (i < mem_cnt) {
 		// id should be at the ext ptr
 		id = get_ext_start(meta_data, id);
@@ -1123,10 +1078,8 @@ unsigned int jsonP_json::get_keys(object_id id, struct object_key *&keys)
 				keys[i].type = get_element_type(meta_data, id);
 				
 				if (keys[i].type == object_ptr || keys[i].type == array_ptr) {
-//					keys[i++].key = data + get_key_location(meta_data, get_key_location(meta_data, id + obj_member_key_offx));
 					keys[i++].key = data + get_uint_a_indx(meta_data, get_key_location(meta_data, id));
 				} else {
-//					keys[i++].key = data + get_key_location(meta_data, id + obj_member_key_offx);
 					keys[i++].key = data + get_key_location(meta_data, id);
 				}
 				id = get_ext_next(meta_data, id);
@@ -1270,36 +1223,28 @@ unsigned int jsonP_json::get_meta_slot(unsigned int start, bool &is_ext, element
 	
 	if (get_element_type(meta_data, start + (num_keys * obj_member_sz)) == extended) {
 //		std::cout << "extended 1" << std::endl;
-//		if (*(unsigned int*)&meta_data[start + (num_keys * obj_member_sz) + obj_member_key_offx] == 0) {
+
 		if (get_key_location(meta_data, start + (num_keys * obj_member_sz)) == 0) {
 //			std::cout << "extended 2" << std::endl;
 			// adding first extended key/val
-//			*(unsigned int*)&meta_data[start + (num_keys * obj_member_sz) + obj_member_key_offx] = *meta_i_ptr;
 			set_key_offx_value(meta_data, start + (num_keys * obj_member_sz), *meta_i_ptr);
-//			 *(unsigned int*)&meta_data[*meta_i_ptr + obj_member_sz] = 0;
 			 set_uint_a_indx(meta_data, *meta_i_ptr + obj_member_sz, 0);
 			 *meta_i_ptr += obj_member_ext_sz;
 			 return *meta_i_ptr - obj_member_ext_sz;
 		} else {
 			// follow list to end
-//			object_id end = *(unsigned int*)&meta_data[start + (num_keys * obj_member_sz) + obj_member_key_offx];
 			object_id end = get_key_location(meta_data, start + (num_keys * obj_member_sz));
 			
 //			std::cout << "END: " << end << ", type: " << *(element_type*)&meta_data[end] << ", kloc: " <<
 //				*(object_id*)&meta_data[end + obj_member_key_offx] << ", next: " << *(object_id*)&meta_data[end + obj_member_sz] << std::endl;
 
-//			while (*(object_id*)&meta_data[end + obj_member_sz] > 0) {
 			while (get_uint_a_indx(meta_data, end + obj_member_sz) > 0) {
-//				std::cout << "end: " << end << std::endl;
-//				end = *(object_id*)&meta_data[end + obj_member_sz];
 				end = get_uint_a_indx(meta_data, end + obj_member_sz);
 			}
 
 //			std::cout << "final end: " << end << std::endl;
 
-//			*(object_id*)&meta_data[end + obj_member_sz] = *meta_i_ptr;
 			set_uint_a_indx(meta_data, end + obj_member_sz, *meta_i_ptr);
-//			*(object_id*)&meta_data[*meta_i_ptr + obj_member_sz] = 0;
 			set_uint_a_indx(meta_data, *meta_i_ptr + obj_member_sz, 0);
 			 *meta_i_ptr += obj_member_ext_sz;
 //			std::cout << "extended returning: " << *meta_i_ptr - obj_member_ext_sz << std::endl;
@@ -1415,7 +1360,7 @@ char* jsonP_json::stringify(int precision)
 
 	char *txt = (char*)malloc(len);
 	
-	char float_format[32]; // = "%.2lf";
+	char float_format[32];
 	float_format[0] = '%';
 	float_format[1] = '.';
 	sprintf(float_format+2, "%dlf", precision);
@@ -1445,7 +1390,6 @@ void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned 
 	element_type type;
 	unsigned int j=0;
 	bool keep_going = true;
-//	object_id ext_loc = *(unsigned int*)&meta_data[meta_i + (k_cnt * obj_member_sz) + obj_member_key_offx];	//assign ext value
 	object_id ext_loc = get_key_location(meta_data, meta_i + (k_cnt * obj_member_sz));
 //	std::cout << "ext_loc b4 loop: " << ext_loc << std::endl;
 
@@ -1454,7 +1398,6 @@ void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned 
 		if (j >= k_cnt) {
 			if (ext_loc > 0) {
 				meta_i = ext_loc;
-//				ext_loc = *(unsigned int*)&meta_data[meta_i + obj_member_ext_next_offx];		//assign next ext value
 				ext_loc = get_ext_next(meta_data, meta_i);
 //				std::cout << "next ext_loc in loop: " << ext_loc << std::endl;
 			} else {
@@ -1514,13 +1457,7 @@ void jsonP_json::parse_object(unsigned int &len, unsigned int &meta_i, unsigned 
 				len = increase_txt_buffer(sizeof(double), len, i, txt);
 				i += sprintf(&txt[i], float_format, *(double*)&data[k_loc + k_len + 1]);
 			}
-		} /*else if (type == numeric_long_cvt) {
-			len = increase_txt_buffer(sizeof(long), len, i, txt);
-			i += sprintf(&txt[i], "%ld", *(long*)&data[k_loc + k_len + 1]);
-		} else if (type == numeric_double_cvt) {
-			len = increase_txt_buffer(sizeof(double), len, i, txt);
-			i += sprintf(&txt[i], float_format, *(double*)&data[k_loc + k_len + 1]);
-		}*/ else if (type == boolean) {
+		} else if (type == boolean) {
 			if (data[k_loc + k_len + 1] == '1') {
 				txt[i++] = 't';
 				txt[i++] = 'r';
@@ -1575,7 +1512,6 @@ void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned i
 	element_type type; 
 	int k=0;
 	bool keep_going = true;
-//	object_id ext_loc = *(unsigned int*)&meta_data[meta_i + (num_elements * arry_member_sz) + arry_member_val_offx];	//assign ext value
 	object_id ext_loc = get_val_location(meta_data, meta_i + (num_elements * arry_member_sz));
 
 	txt[i++] = '[';
@@ -1585,7 +1521,7 @@ void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned i
 		if (k >= num_elements) {
 			if (ext_loc > 0) {
 				meta_i = ext_loc;
-//				ext_loc = *(unsigned int*)&meta_data[meta_i + arry_member_ext_next_offx];		//assign next ext value
+				//assign next ext value
 				ext_loc = get_ext_next(meta_data, meta_i);
 //				std::cout << "next ext_loc in loop: " << ext_loc << std::endl;
 			} else {
@@ -1627,13 +1563,7 @@ void jsonP_json::parse_array(unsigned int &len, unsigned int &meta_i, unsigned i
 				len = increase_txt_buffer(sizeof(double), len, i, txt);
 				i += sprintf(&txt[i], float_format, *(double*)&data[v_loc]);
 			}
-		} /*else if (type == numeric_long_cvt) {
-			len = increase_txt_buffer(sizeof(long), len, i, txt);
-			i += sprintf(&txt[i], "%ld", *(long*)&data[v_loc]);
-		} else if (type == numeric_double_cvt) {
-			len = increase_txt_buffer(sizeof(double), len, i, txt);
-			i += sprintf(&txt[i], float_format, *(double*)&data[v_loc]);
-		}*/ else if (type == boolean) {
+		} else if (type == boolean) {
 			if (data[v_loc] == '1') {
 				txt[i++] = 't';
 				txt[i++] = 'r';

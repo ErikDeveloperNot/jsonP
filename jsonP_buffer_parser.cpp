@@ -2,7 +2,7 @@
 
 
 
-jsonP_buffer_parser::jsonP_buffer_parser(std::string file_name, int buf_sz) : buffer_size{buf_sz}
+jsonP_buffer_parser::jsonP_buffer_parser(std::string file_name, int buf_sz, unsigned short options_) : buffer_size{buf_sz}
 {
 	if (buffer_size < min_buffer_size) {
 		std::cerr << "jsonP_buffer_parser initiated with buffer size too small: " << buffer_size <<
@@ -12,11 +12,11 @@ jsonP_buffer_parser::jsonP_buffer_parser(std::string file_name, int buf_sz) : bu
 	
 	reader = new file_chunk_impl{file_name, buffer_size};
 	buffer = (char*) malloc(sizeof(char) * (buffer_size + 1));
-	options = PRESERVE_JSON | SHRINK_BUFS;
+	options = options_ | PRESERVE_JSON | SHRINK_BUFS;
 }
 
 
-jsonP_buffer_parser::jsonP_buffer_parser(IChunk_reader *reader, int buf_sz) : buffer_size{buf_sz}, reader{reader}
+jsonP_buffer_parser::jsonP_buffer_parser(IChunk_reader *reader, int buf_sz, unsigned short options_) : buffer_size{buf_sz}, reader{reader}
 {	
 	if (buffer_size < min_buffer_size) {
 		std::cerr << "jsonP_buffer_parser initiated with buffer size too small: " << buffer_size <<
@@ -25,7 +25,7 @@ jsonP_buffer_parser::jsonP_buffer_parser(IChunk_reader *reader, int buf_sz) : bu
 	}
 	
 	buffer = (char*) malloc(sizeof(char) * (buffer_size + 1));
-	options = PRESERVE_JSON | SHRINK_BUFS;
+	options = options_ | PRESERVE_JSON | SHRINK_BUFS;
 }
 
 
@@ -94,7 +94,7 @@ jsonP_json* jsonP_buffer_parser::parse()
 	look_for_key = false;
 	stack_i = 0;
 	data_i = 0;
-	
+
 	//get first chunk and start parsing
 	if (read_next_chunk() > 2) {
 		doc = jsonP_parser::parse(buffer, json_length);
