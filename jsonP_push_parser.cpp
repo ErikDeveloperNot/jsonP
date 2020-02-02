@@ -151,7 +151,7 @@ void jsonP_push_parser::parse_value()
 		parsing_started = true;
 	} else if (parsing_array) {
 		array_key_i = cur_path_l;		
-		sprintf(sprintf_buf, "%d",array_i);
+		sprintf(sprintf_buf, "%u",array_i);
 		path_add(sprintf_buf);
 		
 		if (!parsing && handler->get_element(cur_path)) {
@@ -177,7 +177,7 @@ void jsonP_push_parser::parse_value()
 			else
 				handler->element_parsed(cur_path, type, (const void*) &data[k_loc]);
 		} else if (type == numeric_long) {
-			long value;
+			int value;
 			
 			if (!start_parsing_array) {
 				value = atol(&data[k_loc + k_len + 1]);

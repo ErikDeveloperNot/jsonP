@@ -71,8 +71,8 @@ protected:
 
 	
 public:
-	jsonP_buffer_parser(std::string file_name, int buf_sz = 8192);
-	jsonP_buffer_parser(IChunk_reader *reader, int buf_sz = 8192);
+	jsonP_buffer_parser(std::string file_name, int buf_sz = 8192, unsigned short options_ = 0);
+	jsonP_buffer_parser(IChunk_reader *reader, int buf_sz = 8192, unsigned short options_ = 0);
 	~jsonP_buffer_parser();
 
 	jsonP_json * parse();

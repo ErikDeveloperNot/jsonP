@@ -2,13 +2,8 @@
 #define IPUSH_HANDLER_H
 
 #include "element.h"
-#include <string>
-#include <vector>
 #include "jsonP_json.h"
 
-//remove
-#include <iostream>
-//end
 
 
 
@@ -30,15 +25,15 @@ public:
 class test_push_handler : public IPush_handler
 {
 public:
-	char match1[25] = {"/widget/embed_array/2\0"};
-	char match2[25] = {"/widget/main_window\0"};
-	char match3[25] = {"/dont_use/bool_true\0"};
-	char match4[25] = {"/dont_use/bool_false\0"};
-	char match5[20] = {"/dont_use/null_key\0"};
-	char match6[20] = {"/dont_use/float\0"};
-	char match7[20] = {"/widget/int_long\0"};
-	char match8[25] = {"/widget/embed_array/4\0"};
-	
+	const char *match1 = {"/widget/embed_array/2\0"};
+	const char *match2 = {"/widget/main_window\0"};
+	const char *match3 = {"/dont_use/bool_true\0"};
+	const char *match4 = {"/dont_use/bool_false\0"};
+	const char *match5 = {"/dont_use/null_key\0"};
+	const char *match6 = {"/dont_use/float\0"};
+	const char *match7 = {"/widget/int_long\0"};
+	const char *match8 = {"/widget/embed_array/4\0"};
+
 	jsonP_json *long_live = nullptr;
 	char *pretty;
 	

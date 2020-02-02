@@ -90,7 +90,9 @@ protected:
 	bool use_json;
 	bool shrink_buffers;
 	bool dont_sort_keys;
+	bool convert_numerics;
 
+	void *numeric_buf = NULL;
 	parse_stats stats;
 	// END STUFF for new modle to rid std::map and std::new for each element
 
@@ -112,6 +114,7 @@ protected:
 
 	virtual void parse_key();
 	virtual element_type parse_numeric();
+virtual element_type parse_numeric_cvt();
 	virtual unsigned int parse_array();
 	virtual unsigned int parse_object();
 	virtual void parse_value();
