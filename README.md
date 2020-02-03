@@ -15,7 +15,7 @@ Memory 16GB
 Apple LLVM version 9.1.0 (clang-902.0.39.2)
 c++17 compiled with -O3 as a dynamic library  
   
-All tests were run with the same driver program under the same conditions. The non jsonP parsers are configured based of documentation from their sites, however their maybe ways to tweak their performance that I am not aware of. For test 1 (chart 1) a 1.5GB json text file (many objects/arrays with many float numerics and strings) is loaded into memory before parsing, except with the jsonP buffer/push parsers which parse while reading in the json. For test 2 (chart 2) a 3.4kb webapp.json file is parsed/destroyed 1000 times.
+All tests were run with the same driver program under the same conditions. The non jsonP parsers are configured based of documentation from their sites, however their maybe ways to tweak their performance that I am not aware of. For test 1 ([Chart 1](#chart-1)) a 1.5GB json text file (many objects/arrays with many float numerics and strings) is loaded into memory before parsing, except with the jsonP buffer/push parsers which parse while reading in the json. For test 2 ([Chart 2](#chart-2)) a 3.4kb webapp.json file is parsed/destroyed 1000 times.
   
 #### Chart 1
 | Parser                                                                                                       | Memory b4 parse | Memory aft parse                                                                                             | Parse time | Stringify time | Pretty stringify time | free/delete time |
