@@ -35,6 +35,18 @@ All tests were run with the same driver program under the same conditions. The n
 | **jsonP push parser** (return false for all keys, so pull no elements, just parse), use an 8k buffer.        |      340 KB     |                          572 KB (this is the largest memory footprint during parse)                          |  4s 899ms  |                |                       |                  |
 | **jsonP push parser** (return true for 9838 keys, pulls 59 MB of data in total), use an 8k buffer.           |      340 KB     | 784 KB  (this is the largest memory foot print during parse. After each object is pulled out it is deleted)  |  5s 935ms  |                |                       |                  |
   
+#### Chart 2
+| Parser                                                | Time to parse 1000 times |
+|-------------------------------------------------------|:------------------------:|
+| [**RapidJSON**](https://github.com/miloyip/rapidjson) |           34ms           |
+| [**SimpleJSON**](https://github.com/MJPA/SimpleJSON)  |           190ms          |
+| [**cJson**](https://github.com/DaveGamble/cJSON)      |           39ms           |
+| [**sajson**](https://github.com/chadaustin/sajson)    |           21ms           |
+| **jsonP standard** -don't sort keys                   |           21ms           |
+| **jsonP standard** -sort keys                         |           24ms           |
+
+  
+  
   
 [Standard Parser](#standard-parser)  
 [Buffer Parser](#buffer-parser)  
