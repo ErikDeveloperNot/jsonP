@@ -48,7 +48,7 @@ All tests were run with the same driver program under the same conditions. The n
   
 ---
   
-### Usage
+## Usage
 [Standard Parser](#standard-parser)  
 [Buffer Parser](#buffer-parser)  
 [Push Parser](#push-parser)  
@@ -57,7 +57,7 @@ All tests were run with the same driver program under the same conditions. The n
 
 *A sample driver program demostrating much of the functionality can be found at [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr)*
   
-#### Standard Parser
+### Standard Parser
 Create a parser object with one of two constructors  
 ```c++
 #include "jsonP_parser.h"
@@ -66,10 +66,10 @@ jsonP_parser(std::string & json, unsigned short options = 0);
 jsonP_parser(char * json, unsigned int json_len, unsigned short options = 0);
 ```
 Options include:
-- PRESERVE_JSON *(allocates space for all meta and element data leaving the original json unmodified)*
-- SHRINK_BUFS *(on parsing completion shrink meta and data buffers to free unused space, requires extra realloc call)*
-- DONT_SORT_KEYS *(add performance when not sorting object keys, trade off is searches are done as linked list)*
-- CONVERT_NUMERICS *(the default is to not convert numerics until accessed. converting numerics during parse implicitly means PRESERVE_JSON)*
+- **PRESERVE_JSON** *(allocates space for all meta and element data leaving the original json unmodified)*
+- **SHRINK_BUFS** *(on parsing completion shrink meta and data buffers to free unused space, requires extra realloc call)*
+- **DONT_SORT_KEYS** *(add performance when not sorting object keys, trade off is searches are done as linked list)*
+- **CONVERT_NUMERICS** *(the default is to not convert numerics until accessed. converting numerics during parse implicitly means PRESERVE_JSON)*
   
 Options can be or'd together
 ```c++
@@ -79,16 +79,16 @@ parse can then be called which will return a jsonP_json object.
 ```c++
 jsonP_json json_doc = parser.parse();
 ```
-Both the parser *jsonP_parser* and the document object *jsonP_json* need to be freed separately.
-#### Buffer Parser
+Both the parser **jsonP_parser** and the document object **jsonP_json** need to be freed separately.
+### Buffer Parser
   
   
-#### Push Parser
+### Push Parser
   
   
-#### Document Creation
+### Document Creation
   
   
-#### Stringify
+### Stringify
 
 
