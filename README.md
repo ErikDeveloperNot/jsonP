@@ -52,8 +52,7 @@ All tests were run with the same driver program under the same conditions. The n
 [Standard Parser](#standard-parser)  
 [Buffer Parser](#buffer-parser)  
 [Push Parser](#push-parser)  
-[Document Creation](#document-creation)   
-[Stringify](#stringify)
+[jsonP_json](#jsonP_json)   
 
 *A sample driver program demostrating much of the functionality can be found at [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr)*
   
@@ -123,13 +122,16 @@ push_parser->parse();
 delete push_parser;
 delete handler;
 ```
-### Document Creation
+---
+### jsonP_json
+
+[Stringify](#stringify)
   
   
 ### Stringify
   
 ---  
-#### Interfaces
+## Interfaces
   
   
 ### IChunk_reader
