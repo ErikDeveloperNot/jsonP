@@ -60,10 +60,8 @@ All tests were run with the same driver program under the same conditions. The n
 ### Standard Parser
 Create a parser object with one of two constructors  
 ```c++
-#include "jsonP_parser.h"
-
-jsonP_parser(std::string & json, unsigned short options = 0);
-jsonP_parser(char * json, unsigned int json_len, unsigned short options = 0);
+jsonP_parser(std::string &json, unsigned short options = 0);
+new jsonP_parser(char *json, unsigned int json_len, unsigned short options = 0);
 ```
 Options include:
 - **PRESERVE_JSON** *(allocates space for all meta and element data leaving the original json unmodified)*
@@ -77,12 +75,36 @@ jsonP_parser parser(my_json, strlen(my_json), PRESERVE_JSON | DONT_SORT_KEYS);
 ```
 parse can then be called which will return a jsonP_json object.
 ```c++
-jsonP_json json_doc = parser.parse();
+#include "jsonP_parser.h"
+
+jsonP_parser *parser = new jsonP_parser(my_json, strlen(my_json), PRESERVE_JSON | DONT_SORT_KEYS);
+jsonP_json *json_doc = parser->parse();
+
+delete parser;
+delete json_doc;
 ```
 Both the parser **jsonP_parser** and the document object **jsonP_json** need to be freed separately.
 ### Buffer Parser
+The **jsonP_buffer_parser** allows parsing of a json while reading it from disk or another source. There are two constructors available, one that takes a **std::string** for a file name/path and another that takes a class that implements the [IChunk_reader](#ichunk_reader) interface. Both constructors take an int paramter for the buffer size (min 1024), the samller the buffer the more reads that need to be done. Both constructors also take an unsigned short for extra options.
+```c++
+jsonP_buffer_parser(std::string file_name, int buf_sz, unsigned short options_ = 0)
+jsonP_buffer_parser(IChunk_reader *reader, int buf_sz, unsigned short options_ = 0)
+```
+Options include:
+- **DONT_SORT_KEYS** *(add performance when not sorting object keys, trade off is searches are done as linked list)*
+- **CONVERT_NUMERICS** *(the default is to not convert numerics until accessed. converting numerics during parse implicitly means PRESERVE_JSON)*
   
-  
+parse can then be called which will return a jsonP_json object.
+```c++
+#include "jsonP_buffer_parser.h"
+
+jsonP_buffer_parser *buf_parser = new jsonP_buffer_parser{"/dir1/large.json", 8192};
+jsonP_json *doc_buf = buf_parser->parse();
+
+delete buf_parser;
+delete doc_buf;
+```
+*note: if a class implementing IChunk_reader is used, when the jsonP_buffer_parser is deleted it will also delete the reader interface*
 ### Push Parser
   
   
@@ -90,5 +112,9 @@ Both the parser **jsonP_parser** and the document object **jsonP_json** need to 
   
   
 ### Stringify
+  
+---  
+#### Interfaces
+### IChunk_reader
 
 
