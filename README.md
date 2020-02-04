@@ -61,7 +61,7 @@ All tests were run with the same driver program under the same conditions. The n
 Create a parser object with one of two constructors  
 ```c++
 jsonP_parser(std::string &json, unsigned short options = 0);
-new jsonP_parser(char *json, unsigned int json_len, unsigned short options = 0);
+jsonP_parser(char *json, unsigned int json_len, unsigned short options = 0);
 ```
 Options include:
 - **PRESERVE_JSON** *(allocates space for all meta and element data leaving the original json unmodified)*
@@ -87,8 +87,8 @@ Both the parser **jsonP_parser** and the document object **jsonP_json** need to 
 ### Buffer Parser
 The **jsonP_buffer_parser** allows parsing of a json while reading it from disk or another source. There are two constructors available, one that takes a **std::string** for a file name/path and another that takes a class that implements the [IChunk_reader](#ichunk_reader) interface. Both constructors take an int paramter for the buffer size (min 1024), the samller the buffer the more reads that need to be done. Both constructors also take an unsigned short for extra options.
 ```c++
-jsonP_buffer_parser(std::string file_name, int buf_sz, unsigned short options_ = 0)
-jsonP_buffer_parser(IChunk_reader *reader, int buf_sz, unsigned short options_ = 0)
+jsonP_buffer_parser(std::string file_name, int buf_sz, unsigned short options_ = 0);
+jsonP_buffer_parser(IChunk_reader *reader, int buf_sz, unsigned short options_ = 0);
 ```
 Options include:
 - **DONT_SORT_KEYS** *(add performance when not sorting object keys, trade off is searches are done as linked list)*
@@ -106,8 +106,23 @@ delete doc_buf;
 ```
 *note: if a class implementing IChunk_reader is used, when the jsonP_buffer_parser is deleted it will also delete the reader interface*
 ### Push Parser
-  
-  
+The **jsonP_push_parser** is a parser that uses the buffer parser to parse a document while read. Unlike the buffer parser which produces a full **jsonP_json** object model of the raw json, the push parser relies on a supplied [IPush_handler](#ipush_handler) to handle call backs as each element is parsed. See the **IPush_handler** section for more details.  
+There are two constructors available. Both take an instance of a class that implements the **IPush_handler**, as well as a buffer size (min 1024) to be used with the buffer parser. Like the buffer parser either a **std::string** for a file name/path can be supplied or a class that implements the [IChunk_reader](#ichunk_reader) interface.
+```c++
+jsonP_push_parser(std::string file_name, IPush_handler *handler, int buf_sz);
+jsonP_push_parser(IChunk_reader* reader, IPush_handler *handler, int buf_sz);
+```
+parse can then be called, no **jsonP_json** object will be returned since the supplied **IPush_handler** will handle all the call backs. Both parser and the **IPush_handler** need to be deleted, if an **IChunk_reader** was supplied it will be deleted when the parser is deleted.
+```c++
+#include "jsonP_push_parser.h"
+
+IPush_handler *handler = new test_push_handler{};
+jsonP_push_parser *push_parser = new jsonP_push_parser{"../samples/sample1.json", handler};
+push_parser->parse();
+	
+delete push_parser;
+delete handler;
+```
 ### Document Creation
   
   
@@ -115,6 +130,10 @@ delete doc_buf;
   
 ---  
 #### Interfaces
+  
+  
 ### IChunk_reader
+  
+### IPush_handler
 
 
