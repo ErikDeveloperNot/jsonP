@@ -165,14 +165,15 @@ public:
 ```
 The *get_element* method is called as each element is parsed to check if that element should be returned. If the element is an object or array and *true* is returned, this method will not be called for all sub elements of that object/array. Once the parent element completes a document representing that object/array is returned by calling the *element_parsed* method callback. After that method finishes the *get_element* will start to be called again for the remaining elements until parsing is complete. Returning *true* indicates to return the element, returning *false* means the parser will not return that element. The char pointer *path* lists the json path for the element, more on this below.  
   
-The *element_parsed* method is called when an element in which *true* was returned for the *get_element* call has finished being parsed. *path* is the json path of the element, element_type represents the type of element, and *val* is a void pointer to the element returned. Note the memory that is pointed to is owned by the parser and is only guaranteed to exists during the life of this callback method. If this content needs to live longer then a copy should be made.
+The `element_parsed` method is called when an element in which *true* was returned for the *get_element* call has finished being parsed. *path* is the json path of the element, element_type represents the type of element, and *val* is a void pointer to the element returned. Note the memory that is pointed to is owned by the parser and is only guaranteed to exists during the life of this callback method. If this content needs to live longer then a copy should be made.
   
 The source for *IPush_handler* has a sample implementation class [test_push_handler](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/IPush_handler.h) that shows both of these methods. It shows how to test for the element_type returned and cast it appropriately. *note that null/bool_true/bool_false do not contain any data and whatever is pointed to by val will be garbage.* Thhis test_push_handler is demonstrated in the driver test program found in [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr).
   
 The element paths returned by both methods start with a leading **'/'** followed by an element name and more slashes if the element is an object. Array elements will be numbered starting with zero. Samples:  
-**/dont_use/bool_false**                 *is and element with a key named bool_false in an object named dont_use*
-**/widget/embed_array/4**                *is element 5 in array embed_array which is a member of the widget object*
-  
-  
-  
+```
+**/dont_use/bool_false**    
+**/widget/embed_array/4**                
+```
+The first is an element with a key named bool_false in an object named dont_use 
+The second is the numer 5 element in array embed_array which is a member of the widget object
 
