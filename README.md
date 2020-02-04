@@ -132,9 +132,21 @@ delete handler;
   
 ---  
 ## Interfaces
-  
-  
 ### IChunk_reader
+The **IChunk_reader** interface consists of a single method to implement and destructor.
+```c++
+class IChunk_reader
+{
+public:
+	virtual ~IChunk_reader(){}
+	// user implemented callback, 'buf' is a char[] passed to the callback; 'cnt' is the max number of chars to insert.
+	// adding '\0' is not needed; 
+	// either returns the number of chars inserted, 0 when the stream is done and parsing can complete, negative value
+	//		on error.
+	virtual int get_next(char * buf, int cnt) = 0;
+};
+```
+The *get_next()* method is called each time the parser needs more data. The *cnt* variable indicates the max number for chars to copy to the supplied *buf*. A null character does not need to be added to the end and the number of characters copied to the *buf* is returned. When there is no more data to provide to the parser a 0 should be returned. If an error occurs a -1 should be returned to the parser so it can exit. The pointer to *buf* should not be copied or used outside of the callback method *get_next()*. It is created and destroyed by the parser. An example of a class that implements this interface is **file_chunk_impl**, [file_chunk_impl.h](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.h)/[file_chunk_impl.cpp](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.cpp)
   
 ### IPush_handler
 
