@@ -82,9 +82,9 @@ jsonP_json *json_doc = parser->parse();
 delete parser;
 delete json_doc;
 ```
-Both the parser **jsonP_parser** and the document object **jsonP_json** need to be freed separately.
+Both the parser **jsonP_parser** and the document object `jsonP_json` need to be freed separately.
 ### Buffer Parser
-The **jsonP_buffer_parser** allows parsing of a json while reading it from disk or another source. There are two constructors available, one that takes a **std::string** for a file name/path and another that takes a class that implements the [IChunk_reader](#ichunk_reader) interface. Both constructors take an int paramter for the buffer size (min 1024), the samller the buffer the more reads that need to be done. Both constructors also take an unsigned short for extra options.
+The **jsonP_buffer_parser** allows parsing of a json while reading it from disk or another source. There are two constructors available, one that takes a `std::string` for a file name/path and another that takes a class that implements the [IChunk_reader](#ichunk_reader) interface. Both constructors take an int paramter for the buffer size (min 1024), the samller the buffer the more reads that need to be done. Both constructors also take an unsigned short for extra options.
 ```c++
 jsonP_buffer_parser(std::string file_name, int buf_sz, unsigned short options_ = 0);
 jsonP_buffer_parser(IChunk_reader *reader, int buf_sz, unsigned short options_ = 0);
@@ -93,7 +93,7 @@ Options include:
 - **DONT_SORT_KEYS** *(add performance when not sorting object keys, trade off is searches are done as linked list)*
 - **CONVERT_NUMERICS** *(the default is to not convert numerics until accessed. converting numerics during parse implicitly means PRESERVE_JSON)*
   
-parse can then be called which will return a jsonP_json object.
+parse can then be called which will return a `jsonP_json` object.
 ```c++
 #include "jsonP_buffer_parser.h"
 
@@ -105,13 +105,13 @@ delete doc_buf;
 ```
 *note: if a class implementing IChunk_reader is used, when the jsonP_buffer_parser is deleted it will also delete the reader interface*
 ### Push Parser
-The **jsonP_push_parser** is a parser that uses the buffer parser to parse a document while read. Unlike the buffer parser which produces a full **jsonP_json** object model of the raw json, the push parser relies on a supplied [IPush_handler](#ipush_handler) to handle call backs as each element is parsed. See the **IPush_handler** section for more details.  
-There are two constructors available. Both take an instance of a class that implements the **IPush_handler**, as well as a buffer size (min 1024) to be used with the buffer parser. Like the buffer parser either a **std::string** for a file name/path can be supplied or a class that implements the [IChunk_reader](#ichunk_reader) interface.
+The **jsonP_push_parser** is a parser that uses the buffer parser to parse a document while read. Unlike the buffer parser which produces a full `jsonP_json` object model of the raw json, the push parser relies on a supplied [IPush_handler](#ipush_handler) to handle call backs as each element is parsed. See the `IPush_handler` section for more details.  
+There are two constructors available. Both take an instance of a class that implements the `IPush_handler`, as well as a buffer size (min 1024) to be used with the buffer parser. Like the buffer parser either a `std::string` for a file name/path can be supplied or a class that implements the [IChunk_reader](#ichunk_reader) interface.
 ```c++
 jsonP_push_parser(std::string file_name, IPush_handler *handler, int buf_sz);
 jsonP_push_parser(IChunk_reader* reader, IPush_handler *handler, int buf_sz);
 ```
-parse can then be called, no **jsonP_json** object will be returned since the supplied **IPush_handler** will handle all the call backs. Both parser and the **IPush_handler** need to be deleted, if an **IChunk_reader** was supplied it will be deleted when the parser is deleted.
+parse can then be called, no `jsonP_json` object will be returned since the supplied `IPush_handler` will handle all the call backs. Both parser and the `IPush_handler` need to be deleted, if an `IChunk_reader` was supplied it will be deleted when the parser is deleted.
 ```c++
 #include "jsonP_push_parser.h"
 
@@ -146,7 +146,7 @@ public:
 	virtual int get_next(char * buf, int cnt) = 0;
 };
 ```
-The *get_next()* method is called each time the parser needs more data. The *cnt* variable indicates the max number for chars to copy to the supplied *buf*. A null character does not need to be added to the end and the number of characters copied to the *buf* is returned. When there is no more data to provide to the parser a 0 should be returned. If an error occurs a -1 should be returned to the parser so it can exit. The pointer to *buf* should not be copied or used outside of the callback method *get_next()*. It is created and destroyed by the parser. An example of a class that implements this interface is **file_chunk_impl**, [file_chunk_impl.h](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.h)/[file_chunk_impl.cpp](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.cpp)
+The `get_next()` method is called each time the parser needs more data. The `cnt` variable indicates the max number for chars to copy to the supplied `buf`. A null character does not need to be added to the end and the number of characters copied to the `buf` is returned. When there is no more data to provide to the parser a 0 should be returned. If an error occurs a -1 should be returned to the parser so it can exit. The pointer to `buf` should not be copied or used outside of the callback method `get_next()`. It is created and destroyed by the parser. An example of a class that implements this interface is `file_chunk_impl`, [file_chunk_impl.h](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.h)/[file_chunk_impl.cpp](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/file_chunk_impl.cpp)
   
 ### IPush_handler
 An instance of the **IPush_handler** is used by the push parser to handle events while parsing a json. It consists of two methods to implement and a destructor.
@@ -163,11 +163,11 @@ public:
 	virtual void element_parsed(const char * path, element_type, const void *val) = 0;
 };
 ```
-The *get_element* method is called as each element is parsed to check if that element should be returned. If the element is an object or array and *true* is returned, this method will not be called for all sub elements of that object/array. Once the parent element completes a document representing that object/array is returned by calling the *element_parsed* method callback. After that method finishes the *get_element* will start to be called again for the remaining elements until parsing is complete. Returning *true* indicates to return the element, returning *false* means the parser will not return that element. The char pointer *path* lists the json path for the element, more on this below.  
+The `get_element` method is called as each element is parsed to check if that element should be returned. If the element is an object or array and `true` is returned, this method will not be called for all sub elements of that object/array. Once the parent element completes a document representing that object/array is returned by calling the `element_parsed` method callback. After that method finishes the `get_element` will start to be called again for the remaining elements until parsing is complete. Returning `true` indicates to return the element, returning `false` means the parser will not return that element. The char pointer `path` lists the json path for the element, more on this below.  
   
-The `element_parsed` method is called when an element in which *true* was returned for the *get_element* call has finished being parsed. *path* is the json path of the element, element_type represents the type of element, and *val* is a void pointer to the element returned. Note the memory that is pointed to is owned by the parser and is only guaranteed to exists during the life of this callback method. If this content needs to live longer then a copy should be made.
+The `element_parsed` method is called when an element in which *true* was returned for the `get_element` call has finished being parsed. `path` is the json path of the element, element_type represents the type of element, and `val` is a void pointer to the element returned. Note the memory that is pointed to is owned by the parser and is only guaranteed to exists during the life of this callback method. If this content needs to live longer then a copy should be made.
   
-The source for *IPush_handler* has a sample implementation class [test_push_handler](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/IPush_handler.h) that shows both of these methods. It shows how to test for the element_type returned and cast it appropriately. *note that null/bool_true/bool_false do not contain any data and whatever is pointed to by val will be garbage.* Thhis test_push_handler is demonstrated in the driver test program found in [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr).
+The source for **IPush_handler** has a sample implementation class [test_push_handler](https://github.com/ErikDeveloperNot/jsonP_dyn/blob/master/IPush_handler.h) that shows both of these methods. It shows how to test for the element_type returned and cast it appropriately. *note that null/bool_true/bool_false do not contain any data and whatever is pointed to by val will be garbage.* Thhis test_push_handler is demonstrated in the driver test program found in [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr).
   
 The element paths returned by both methods start with a leading **'/'** followed by an element name and more slashes if the element is an object. Array elements will be numbered starting with zero. Samples:  
 ```
