@@ -153,10 +153,10 @@ Adds an object/array element to an existing object/array element.
 ```c++
 add_container(const char* key, unsigned int num_keys, object_id id, element_type container_type);
 ```
-``key`` if the parent element is an object a key name needs to be provided, if the parent is an array pass `NULL`. 
-``num_keys`` number of elements the new container will hold.  
-``id`` the `object_id` of the parent object/array.  
-``container_type`` the type of element of the new container, `object` or `array`.  
+**key** - if the parent element is an object a key name needs to be provided, if the parent is an array pass `NULL`. 
+**num_keys** - number of elements the new container will hold.  
+**id** - the `object_id` of the parent object/array.  
+**container_type** - the type of element of the new container, `object` or `array`.  
 
 
 ### add_value_type
