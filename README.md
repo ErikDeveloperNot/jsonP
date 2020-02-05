@@ -178,12 +178,12 @@ int update_value(search_path_element *path, unsigned int cnt, element_type type,
 int update_value(const char *path, const char *delim, element_type type, void *value);
 ```
 **element_id** - the object_id of the element being updated.  
-**index_type** - if the elements being updated parent is an object use `object_key`, if an array use `array_indx`.  
-**type** - the type of element being updated.
+**index_type** - if the elements parent is an object use `object_key`, if it an array use `array_indx`.  
+**type** - the type of element being updated.  
 **value** - pointer to the new value. The pointers contents will be copied.  
 
-For the search_path_element version see [using search_path_element](#using search_path_element).  
-For the path/delim version see [using path/delim](#using path/delim).  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
 
 
 
