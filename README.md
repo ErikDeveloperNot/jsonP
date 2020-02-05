@@ -138,7 +138,7 @@ Options can be Or'd together `DONT_SORT_KEYS | CONVERT_NUMERICS`
   
 The second takes another `jsonP_json` and makes a copy.
   
-##### Note on `objects` and `arrays`
+##### Note on objects and arrays
 *When creating an object/array, the number of elements it will contain is specified. If keys are sorted, the default, this means that if at a later time more elements need to be added to the object/array those elements will be added to a linked list and will not be sorted in the case of an object. This can slow down access times the longer this list gets.*
   
 *When a json text file is parsed all the objects and arrays will be created with the exact number of elements contained in the json. If more elements are added after parse those elements will be added to the linked list of that object/array.*
@@ -148,7 +148,8 @@ The second takes another `jsonP_json` and makes a copy.
 [add_value_type](#add_value_type)  
 [update_value](#update_value)  
 
-[Stringify](#stringify)
+[Stringify](#stringify)  
+
 ---
 ### add_container
 Adds an object/array element to an existing object/array element and returns the new elements object_id.
@@ -159,6 +160,7 @@ object_id add_container(const char* key, unsigned int num_keys, object_id id, el
 **num_keys** - number of elements the new container will hold.  
 **id** - the `object_id` of the parent object/array.  
 **container_type** - the type of element of the new container, `object` or `array`.  
+
 ---
 ### add_value_type
 Add a non container type of element. Returns 1 on success -1 on failure.
@@ -169,6 +171,7 @@ int add_value_type(element_type e_type, object_id id, const char* key, void* val
 **id** - the object__id of the parent containter.  
 **key** - if the parent element is an object the name of the new elements key, NULL if the parent is an array.  
 **value** - pointer to the value of the new element. The pointer value will be copied.  
+
 ---
 ### update_value
 Updates an existing elements value. Returns 1 on success.  
