@@ -129,7 +129,7 @@ The `jsonP_json` class represents a json document object model. A pointer to a `
 jsonP_json(element_type type, unsigned int element_cnt, unsigned int buf_sz = 102400, unsigned short options = 0);
 jsonP_json(const jsonP_json &other);
 ```
-The first takes a type for the json, either `object` or `array`, the number of elements, the size of a buffer to use (for large jsons starting off with a large buffer will limit the number of `reallocs` if performance is important, and parser options.
+The first takes a type for the json, either `object` or `array`, the number of elements, the size of a buffer to use (for large jsons starting off with a large buffer will limit the number of `reallocs` if performance is important), and parser options.
   
 Options include:
 - **DONT_SORT_KEYS** *(add performance when not sorting object keys, trade off is searches are done as linked list)*
@@ -138,14 +138,14 @@ Options can be Or'd together `DONT_SORT_KEYS | CONVERT_NUMERICS`
   
 The second takes another `jsonP_json` and makes a copy.
   
-###### Note on `objects` and `arrays`
-> When creating an object/array, the number of elements it will contain is specified. If keys are sorted, the default, this means that if at a later time more elements need to be added to the object/array those elements will be added to a linked list and will not be sorted in the case of an object. This can slow down access times the longer this list gets.
->
-> When a json text file is parsed all the objects and arrays will be created with the exact number of elements contained in the json. If more elements are added after parse those elements will be added to the linked list of that object/array.
+##### Note on `objects` and `arrays`
+***When creating an object/array, the number of elements it will contain is specified. If keys are sorted, the default, this means that if at a later time more elements need to be added to the object/array those elements will be added to a linked list and will not be sorted in the case of an object. This can slow down access times the longer this list gets.
+  
+***When a json text file is parsed all the objects and arrays will be created with the exact number of elements contained in the json. If more elements are added after parse those elements will be added to the linked list of that object/array.
   
 ##### Using the jsonP_json
-[add_container](#add_container)
-[add_value_type](#add_value_type)
+[add_container](#add_container)  
+[add_value_type](#add_value_type)  
 [Stringify](#stringify)
   
 ### add_container
