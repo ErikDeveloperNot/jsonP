@@ -143,12 +143,23 @@ The second takes another `jsonP_json` and makes a copy.
   
 ***When a json text file is parsed all the objects and arrays will be created with the exact number of elements contained in the json. If more elements are added after parse those elements will be added to the linked list of that object/array.***
   
-##### Using the jsonP_json
+#### jsonP_json methods
 [add_container](#add_container)  
 [add_value_type](#add_value_type)  
 [Stringify](#stringify)
   
 ### add_container
+Adds an object/array element to an existing object/array element.
+```c++
+add_container(const char* key, unsigned int num_keys, object_id id, element_type container_type);
+```
+``key`` if the parent element is an object a key name needs to be provided, if the parent is an array pass `NULL`. 
+``num_keys`` number of elements the new container will hold.  
+``id`` the `object_id` of the parent object/array.  
+``container_type`` the type of element of the new container, `object` or `array`.  
+
+
+### add_value_type
 ### Stringify
   
 ---  
