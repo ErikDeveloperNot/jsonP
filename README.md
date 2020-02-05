@@ -123,7 +123,7 @@ delete push_parser;
 delete handler;
 ```
 ---
-### jsonP_json
+# jsonP_json
 The `jsonP_json` class represents a json document object model. A pointer to a `jsonP_json` object is returned after parsing or can be used to create a json document. The two constructors available are
 ```c++
 jsonP_json(element_type type, unsigned int element_cnt, unsigned int buf_sz = 102400, unsigned short options = 0);
@@ -188,7 +188,22 @@ int update_value(const char *path, const char *delim, element_type type, void *v
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
 For the path/delim version see [using path/delim](#using-path/delim).  
 
-
+---
+### delete_value
+Removes an existing element, returns 1 on success.  
+```c++
+int delete_value(search_path_element *path, unsigned int cnt, error *err);
+int delete_value(const char *path, const char *delim, error *err);
+int delete_value(object_id id, object_id parent, error *err);
+```
+**id** - object_id of the element to delete.  
+**parent** - object_id of the parent container.  
+**err** - pointer to an error struct. On a failure will contain the error message.  
+  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+  
+---
 
 ### Stringify
   
