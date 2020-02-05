@@ -146,20 +146,40 @@ The second takes another `jsonP_json` and makes a copy.
 #### jsonP_json methods
 [add_container](#add_container)  
 [add_value_type](#add_value_type)  
+[update_value](#update_value)  
+
 [Stringify](#stringify)
   
 ### add_container
-Adds an object/array element to an existing object/array element.
+Adds an object/array element to an existing object/array element and returns the new elements object_id.
 ```c++
-add_container(const char* key, unsigned int num_keys, object_id id, element_type container_type);
+object_id add_container(const char* key, unsigned int num_keys, object_id id, element_type container_type);
 ```
 **key** - if the parent element is an object a key name needs to be provided, if the parent is an array pass `NULL`. 
 **num_keys** - number of elements the new container will hold.  
 **id** - the `object_id` of the parent object/array.  
 **container_type** - the type of element of the new container, `object` or `array`.  
-
-
+  
 ### add_value_type
+Add a non container type of element. Returns 1 on success -1 on failure.
+```c++
+int add_value_type(element_type e_type, object_id id, const char* key, void* value);
+```
+**e_type** - the element type.  
+**id** - the object__id of the parent containter.  
+**key** - if the parent element is an object the name of the new elements key, NULL if the parent is an array.  
+**value** - pointer to the value of the new element. The pointer value will be copied.  
+  
+### update_value
+Updates an existing elements value. Returns 1 on success.  
+```c++
+int update_value(object_id element_id, index_type indx_type, element_type type, void *value);
+int update_value([search_path_element](https://google.com) *path, unsigned int cnt, element_type type, void *value);
+int update_value(const char *path, const char *delim, element_type type, void *value);
+```
+
+
+
 ### Stringify
   
 ---  
