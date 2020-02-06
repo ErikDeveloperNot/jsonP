@@ -147,6 +147,12 @@ The second takes another `jsonP_json` and makes a copy.
 [add_container](#add_container)  
 [add_value_type](#add_value_type)  
 [update_value](#update_value)  
+[delete_value](#delete_value)  
+[get_object_id](#get_object_id)  
+[get_members_count](#get_members_count)  
+[get_keys](#get_keys)  
+[get_next_array_element](#get_next_array_element)  
+
 
 [Stringify](#stringify)  
 
@@ -199,6 +205,64 @@ int delete_value(object_id id, object_id parent, error *err);
 **id** - object_id of the element to delete.  
 **parent** - object_id of the parent container.  
 **err** - pointer to an error struct. On a failure will contain the error message.  
+  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+  
+---
+### get_object_id
+`get_doc_root` gets the root element object_id of the json. The `get_object_id` methods get an elements object_id. Returns `0` if the element is not found.  
+```c++
+object_id get_doc_root();
+object_id get_object_id(search_path_element *path, unsigned int cnt);
+object_id get_object_id(const char *path, const char *delim);
+```
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+  
+---
+### get_members_count
+Get the number of elements in an object or array.  
+```c++
+unsigned int get_members_count(object_id id);
+unsigned int get_members_count(search_path_element *path, unsigned int cnt);
+unsigned int get_members_count(const char *path, const char *delim);
+```
+**id** - object_id of the object/array element to get the number of elements for.  
+
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+
+---
+### get_keys
+Get the keys of an element object. The keys are populated in the supplied object_key struct pointer. Returns the number of keys.  
+```c++
+struct object_key
+{
+	char *key;
+	element_type type;
+};
+
+unsigned int get_keys(object_id id, struct object_key *& keys);
+unsigned int get_keys(search_path_element *path, unsigned int cnt, struct object_key *& keys);
+unsigned int get_keys(const char *path, const char *delim, struct object_key *& keys);
+```
+**id** - object_id of the object element to get the keys for.  
+**keys** - an object_key struct pointer that will be populated with the keys.  
+  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+  
+---
+### get_next_array_element
+The `get_next_array_element` method is a way to iterate through an array of elements. On the first call use any of the three versions supplying the information for the array. On the second and subsequent calls use the object_id version of the method and supply `0` for the id. All methods require a void pointer that will be set to point to the value of the next element. The method returns the type of element the pointer points to. When the all elements have been iterated through the returned element type will be `empty`. Note an internal memory buffer is used to hold the value that the pointer points to. This memory buffer might be overwritten on subsequent calls, so values that are needed should be copied.  
+```c++
+element_type get_next_array_element(object_id id, const void *& value);
+element_type get_next_array_element(search_path_element *path, unsigned int cnt, const void *& value);
+element_type get_next_array_element(const char *path, const char *delim, const void *& value);
+```
+**id** - object_id of the array element to iterate through. *only for the first call, see above.*  
+**value** - void pointer that will be set with next element.  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
 For the path/delim version see [using path/delim](#using-path/delim).  
