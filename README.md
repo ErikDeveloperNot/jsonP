@@ -152,9 +152,9 @@ The second takes another `jsonP_json` and makes a copy.
 [get_members_count](#get_members_count)  
 [get_keys](#get_keys)  
 [get_next_array_element](#get_next_array_element)  
-
-
-[Stringify](#stringify)  
+[get_elements_type](#get_elements_type)  
+[get_value](#get_value)  
+[stringify](#stringify)  
 
 ---
 ### add_container
@@ -268,8 +268,52 @@ For the search_path_element version see [using search_path_element](#using-searc
 For the path/delim version see [using path/delim](#using-path/delim).  
   
 ---
+### get_elements_type
+Return the type of an element. If the object_id or search_path_element is not valid returns `invalid` for the element_type.  
+```c++
+element_type get_elements_type(object_id id);
+element_type get_elements_type(search_path_element *path, unsigned int path_count);
+```
+**id** - the object_id of the elements whose type will be returned.  
+  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+  
+---
+### get_value
+There are four different types of get value methods, `get_string_value`, `get_long_value`, `get_double_value`, `get_bool_value`. Each of these come in four different versions. Below only the get_string shows the 4 versions, but all 4 access methods have the same four versions. These methods can only be used with object type parent containers, not with arrays.  
+```c++
+enum index_type : u_int8_t { object_key=0, array_indx=1 };
 
-### Stringify
+const char* get_string_value(search_path_element *path, unsigned int cnt, error *err);
+const char* get_string_value(const char *path, const char *delim, error *err);
+const char* get_string_value(object_id id, index_type type, error *err);
+const char* get_string_value(const char *key, object_id parent, error *err);
+
+long get_long_value(object_id id, index_type type, error *err);
+double get_double_value(object_id id, index_type type, error *err);
+bool get_bool_value(object_id id, index_type type, error *err);
+```
+For the `get_string_value(object_id id, index_type type, error *err)` version  
+**id** - the object_id of the element whose value is to be returned.  
+**type** - index_type is the parent container type of the element. Valid value is `object_key` only.  
+**err** - pointer to an error struct. On a failure will contain the error message.  
+  
+For the `get_string_value(const char *key, object_id parent, error *err)` version  
+**key** - the elements key name.  
+**parent** - the object_id of the parent container.  
+**err** - pointer to an error struct. On a failure will contain the error message.  
+  
+For the search_path_element version see [using search_path_element](#using-search_path_element).  
+For the path/delim version see [using path/delim](#using-path/delim).  
+  
+---
+### stringify
+stringify and stringify_pretty methods create txt representation of the json model. The stringify method creates a compact version with no white space or returns, stringify_pretty creates a formatted version. In both versions the returned pointer needs to be freed by the caller when no longer needed.  
+```c++
+char * stringify(int precision = 6);
+char * stringify_pretty(int precision = 6);
+```
+If numerics are set to be converted, not the default, then there is the option to provide the precision of floats when the stringify methods are called. The stringify_pretty methods has a performance penalty when compared to stringify.  
   
 ---
 ### using search_path_element  
