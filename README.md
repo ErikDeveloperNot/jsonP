@@ -317,6 +317,18 @@ If numerics are set to be converted, not the default, then there is the option t
   
 ---
 ### using search_path_element  
+Many of the access/manipulate methods have a version that take a pointer to an array of `search_path_element`. One method is the `const char* get_string_value(search_path_element *path, unsigned int cnt, error *err)` which will be used as an example.  
+```c++
+enum index_type : u_int8_t { object_key=0, array_indx=1 }; 
+
+struct search_path_element 
+{
+	index_type type;
+	char * key;
+};
+```
+A `search_path_element` 
+
 ### using path/delim  
 
 ---  
