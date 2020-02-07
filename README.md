@@ -328,7 +328,7 @@ struct search_path_element
 	const char * key;
 };
 ```
-A `search_path_element` consists of an `index_type` and a char pointer which points to either an object key or array index. For the json  
+A `search_path_element` consists of an `index_type` and a char pointer which points to either an object key or array index. For the json:  
 ```json
 {
   "key_1" : "string_1",
@@ -353,11 +353,30 @@ p[2].key = "1";
 
 json.get_string_value(p, 3, &err);
 ```
-This would return value_2  
+This would return **value_2**  
   
-___
+---
 ### using path/delim  
-
+Many of the access/manipulate methods have a version that take a char pointer to a key and a delim char. One method is the `const char* get_string_value(const char *path, const char *delim, error *err)` which will be used as an example.  
+For the json:  
+```json
+{
+  "key_1" : "string_1",
+  "key_2" : {
+    "key_3" : 88237755,
+    "key_4" : [
+      "value_1", "value_2"
+    ]
+  }
+}
+```
+In order to get the key_4 array element number 1 a search_path_element would be built like the following  
+```c++
+error err;
+json.get_string_value("/key_2/key_4/1", "/", &err)l
+```
+This would return **value_2**  
+  
 ---  
 ## Interfaces
 ### IChunk_reader
@@ -404,5 +423,15 @@ The element paths returned by both methods start with a leading **'/'** followed
 ```
 The first is an element with a key named bool_false in an object named dont_use 
   
-The second is the numer 5 element in array embed_array which is a member of the widget object
-
+The second is the numer 5 element in array embed_array which is a member of the widget object  
+  
+ ---
+ ### element_type enum
+ ```c++
+ enum element_type : u_int8_t {object=1, string=2, numeric_int=3, numeric_long=4, numeric_double=5, array=7, boolean=8, null=9, empty=11, bool_true=12, bool_false=13};
+```
+  
+### error enum
+```c++
+enum error : u_int8_t { none=0, is_null=1, not_string=2, not_long=3, not_double=4, not_bool=5, not_found=6, invalid_container=7, invalid_id=8 };
+```
