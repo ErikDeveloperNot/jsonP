@@ -280,7 +280,7 @@ For the search_path_element version see [using search_path_element](#using-searc
   
 ---
 ### get_value
-There are four different types of get value methods, `get_string_value`, `get_long_value`, `get_double_value`, `get_bool_value`. Each of these come in four different versions. Below only the get_string shows the 4 versions, but all 4 access methods have the same four versions. These methods can only be used with object type parent containers, not with arrays.  
+There are four different types of get value methods, `get_string_value`, `get_long_value`, `get_double_value`, `get_bool_value`. Each of these come in four different versions. Below only the get_string shows the 4 versions, but all 4 access methods have the same four versions.  
 ```c++
 enum index_type : u_int8_t { object_key=0, array_indx=1 };
 
@@ -302,6 +302,7 @@ For the `get_string_value(const char *key, object_id parent, error *err)` versio
 **key** - the elements key name.  
 **parent** - the object_id of the parent container.  
 **err** - pointer to an error struct. On a failure will contain the error message.  
+*Note this version of the method only works if the parent container is an object, not with arrays.*  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
 For the path/delim version see [using path/delim](#using-path/delim).  
@@ -324,11 +325,37 @@ enum index_type : u_int8_t { object_key=0, array_indx=1 };
 struct search_path_element 
 {
 	index_type type;
-	char * key;
+	const char * key;
 };
 ```
-A `search_path_element` 
+A `search_path_element` consists of an `index_type` and a char pointer which points to either an object key or array index. For the json  
+```json
+{
+  "key_1" : "string_1",
+  "key_2" : {
+    "key_3" : 88237755,
+    "key_4" : [
+      "value_1", "value_2"
+    ]
+  }
+}
+```
+In order to get the key_4 array element number 1 a search_path_element would be built like the following  
+```c++
+error err;
+search_path_element p[3];
+p[0].type = object_key;
+p[0].key = "key_2";
+p[1].type = object_key;
+p[1].key = "key_4";
+p[2].type = array_indx;
+p[2].key = "1";
 
+json.get_string_value(p, 3, &err);
+```
+This would return value_2  
+  
+___
 ### using path/delim  
 
 ---  
