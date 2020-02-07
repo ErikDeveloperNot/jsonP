@@ -155,6 +155,9 @@ The second takes another `jsonP_json` and makes a copy.
 [get_elements_type](#get_elements_type)  
 [get_value](#get_value)  
 [stringify](#stringify)  
+[element_type enum](#element_type-enum)  
+[error enum](#error-enum)  
+
 
 ---
 ### add_container
@@ -192,7 +195,7 @@ int update_value(const char *path, const char *delim, element_type type, void *v
 **value** - pointer to the new value. The pointers contents will be copied.  
 
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
 
 ---
 ### delete_value
@@ -207,7 +210,7 @@ int delete_value(object_id id, object_id parent, error *err);
 **err** - pointer to an error struct. On a failure will contain the error message.  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
   
 ---
 ### get_object_id
@@ -218,7 +221,7 @@ object_id get_object_id(search_path_element *path, unsigned int cnt);
 object_id get_object_id(const char *path, const char *delim);
 ```
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
   
 ---
 ### get_members_count
@@ -231,7 +234,7 @@ unsigned int get_members_count(const char *path, const char *delim);
 **id** - object_id of the object/array element to get the number of elements for.  
 
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
 
 ---
 ### get_keys
@@ -251,7 +254,7 @@ unsigned int get_keys(const char *path, const char *delim, struct object_key *& 
 **keys** - an object_key struct pointer that will be populated with the keys.  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
   
 ---
 ### get_next_array_element
@@ -265,7 +268,7 @@ element_type get_next_array_element(const char *path, const char *delim, const v
 **value** - void pointer that will be set with next element.  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
   
 ---
 ### get_elements_type
@@ -305,7 +308,7 @@ For the `get_string_value(const char *key, object_id parent, error *err)` versio
 *Note this version of the method only works if the parent container is an object, not with arrays.*  
   
 For the search_path_element version see [using search_path_element](#using-search_path_element).  
-For the path/delim version see [using path/delim](#using-path/delim).  
+For the path/delim version see [using json path](#using-json-path).  
   
 ---
 ### stringify
@@ -356,7 +359,7 @@ json.get_string_value(p, 3, &err);
 This would return **value_2**  
   
 ---
-### using path/delim  
+### using json path  
 Many of the access/manipulate methods have a version that take a char pointer to a key and a delim char. One method is the `const char* get_string_value(const char *path, const char *delim, error *err)` which will be used as an example.  
 For the json:  
 ```json
