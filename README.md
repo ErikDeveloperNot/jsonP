@@ -463,6 +463,6 @@ Error snip:
 *Since the buffer and push parsers use a buffer to buffer in a file its possible the `get_error_snip` method may return garbage for part of its output*  
   
 ### jsonP_json
-The jsonP_json document model uses return values for most methods to indicate an error condition. Some methods also take an [error enum](#error enum) pointer where the error message will be populated.  
+The jsonP_json document model uses return values for most methods to indicate an error condition. Some methods also take an [error enum](#error-enum) pointer where the error message will be populated.  
   
   
