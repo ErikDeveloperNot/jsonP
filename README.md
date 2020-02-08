@@ -53,7 +53,9 @@ All tests were run with the same driver program under the same conditions. The n
 [Buffer Parser](#buffer-parser)  
 [Push Parser](#push-parser)  
 [jsonP_json](#jsonP_json)   
-
+[Exceptions and Errors](#exceptions-and-errors)  
+  
+  
 *A sample driver program demostrating much of the functionality can be found at [**jsonP_dyn_drvr**](https://github.com/ErikDeveloperNot/jsonP_dyn_drvr)*
   
 ### Standard Parser
@@ -438,3 +440,29 @@ The second is the numer 5 element in array embed_array which is a member of the 
 ```c++
 enum error : u_int8_t { none=0, is_null=1, not_string=2, not_long=3, not_double=4, not_bool=5, not_found=6, invalid_container=7, invalid_id=8 };
 ```
+  
+## Exceptions and Errors
+[parsers](#parsers)  
+[jsonP_json](#jsonP_json)  
+  
+### parsers
+All of the parsers through a `jsonP_exception` which extends `std::exception` and overrides the virtual method `const char* what() const noexcept`. Most parser exceptions will print the position in the json file the error happeneded and the character that caused the problem. The parsers also have another method that will all to print x number of characters of the json before and after the error message, `std::string get_error_snip(int chars_before, int chars_after);`.
+```c++
+} catch (jsonP_exception &ex) {
+	std::cout << "Parse exception parsing text file: " << ex.what() << std::endl;
+	std::cout << "Error snip:\n" << parser->get_error_snip(25, 25) << std::endl;
+}
+
+Parse exception parsing text file: parse error, in parse_object, found: <, at: 1516
+Error snip:
+"dataStoreClassorg.cofax.SqlDataStorere,
+        "redirectionClassorg.cofax.SqlRedirectionon, <<--Look_crap
+        "dataStoreName": "cofax",
+        "dataStoreDriver": "com.microsoft.jdbc.sqlse
+```
+*Since the buffer and push parsers use a buffer to buffer in a file its possible the `get_error_snip` method may return garbage for part of its output*  
+  
+### jsonP_json
+The jsonP_json document model uses return values for most methods to indicate an error condition. Some methods also take an [error enum](#error enum) pointer where the error message will be populated.  
+  
+  
