@@ -650,16 +650,16 @@ int jsonP_json::update_value(const char *path, const char *delim, element_type t
 }
 	
 	
-int jsonP_json::delete_value(const char *path, const char *delim, char *key, error *err)
+int jsonP_json::delete_value(const char *path, const char *delim, /*char *key,*/  error *err)
 {
 	object_id parent_container;
 	object_id id = get_object_id((char*)path, delim, true, &parent_container);
 	
-	return delete_value(id, parent_container, key, err);
+	return delete_value(id, parent_container, /*key,*/ err);
 }
 
 
-int jsonP_json::delete_value(search_path_element *path, unsigned int path_count, char *key, error *err)
+int jsonP_json::delete_value(search_path_element *path, unsigned int path_count, /*char *key,*/ error *err)
 {
 	object_id id = get_object_id(path, path_count, true);
 	object_id parent_container;
@@ -670,11 +670,11 @@ int jsonP_json::delete_value(search_path_element *path, unsigned int path_count,
 		parent_container = get_object_id(path, path_count-1);
 	}
 	
-	return delete_value(id, parent_container, key, err);
+	return delete_value(id, parent_container, /*ey,*/ err);
 }
 	
 	
-int jsonP_json::delete_value(object_id id, object_id parent_container, char *key, error *err)
+int jsonP_json::delete_value(object_id id, object_id parent_container, /*char *key,*/ error *err)
 {
 	//if later a map is kept with free memory areas will find length from data but leave for now
 	
@@ -756,7 +756,7 @@ int jsonP_json::delete_value(object_id id, object_id parent_container, char *key
 		
 	}
 	
-	return 0;
+	return 1;
 }
 
 

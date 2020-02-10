@@ -17,7 +17,7 @@ enum error : u_int8_t { none=0, is_null=1, not_string=2, not_long=3, not_double=
 struct search_path_element 
 {
 	index_type type;
-	char * key;
+	const char * key;
 };
 
 struct object_key
@@ -83,9 +83,9 @@ public:
 	int update_value(const char *, const char *, element_type, void *);
 
 	//for delete value it makes it way easier to have full path so no option for object_id for now
-	int delete_value(search_path_element *, unsigned int, char *, error*);
-	int delete_value(const char *path, const char *delim, char *key, error *);
-	int delete_value(object_id id, object_id parent, char *key, error *);
+	int delete_value(search_path_element *, unsigned int, /*char *,*/ error*);
+	int delete_value(const char *path, const char *delim, /*char *,*/ error *);
+	int delete_value(object_id id, object_id parent, /*char *,*/ error *);
 	
 	// access methods
 	object_id get_doc_root() { return doc_root; }

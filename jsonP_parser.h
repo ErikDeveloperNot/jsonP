@@ -76,9 +76,9 @@ protected:
 	unsigned int index;
 	bool look_for_key;
 	unsigned int value_start;
-	
+
 	// STUFF for new modle to rid std::map and std::new for each element
-	byte * stack_buf;
+	byte * stack_buf = NULL;
 	unsigned int stack_buf_sz;
 	unsigned int stack_i;
 	byte * data;
@@ -114,7 +114,7 @@ protected:
 
 	virtual void parse_key();
 	virtual element_type parse_numeric();
-virtual element_type parse_numeric_cvt();
+	virtual element_type parse_numeric_cvt();
 	virtual unsigned int parse_array();
 	virtual unsigned int parse_object();
 	virtual void parse_value();
@@ -128,6 +128,7 @@ void test_parse_array(unsigned int);
 
 public:
 	jsonP_parser() = default;
+//	jsonP_parser();
 	jsonP_parser(std::string & json, unsigned short options = 0);
 	jsonP_parser(char * json, unsigned int, unsigned short options = 0);
 	

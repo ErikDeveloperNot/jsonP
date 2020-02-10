@@ -3,6 +3,7 @@
 #include <climits>
 
 
+
 jsonP_parser::jsonP_parser(std::string & json_, unsigned short options) : 
 json_str{json_}, 
 look_for_key{false}, 
@@ -70,9 +71,10 @@ options{options}
 
 jsonP_parser::~jsonP_parser()
 {
-	free(stack_buf);
+	if (stack_buf != NULL) 
+		free(stack_buf);
 	
-	if (convert_numerics)
+	if (convert_numerics) 
 		free(numeric_buf);
 	
 //	std::cout << "End jsonP_parser destructor, convert: " << convert_numerics << std::endl;
